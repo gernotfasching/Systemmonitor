@@ -21,3 +21,8 @@ Der **System-Monitor** ist eine grafische Anwendung zur Überwachung wichtiger S
 3. Projekt kompilieren:
    ```sh
    g++ main.cpp -o system-monitor `wx-config --cxxflags --libs`
+   
+   
+## Lizenz
+Dieses Projekt steht unter der **MIT-Lizenz** – siehe die Datei [LICENSE](./LICENSE) für Details.
+
