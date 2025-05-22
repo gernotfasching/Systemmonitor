@@ -9,7 +9,17 @@ namespace system_monitor {
             panel_->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
             panel_->Bind(wxEVT_PAINT, &MonitorCanvas::on_paint, this);
+            timer_ = new wxTimer(this);
+            Bind(wxEVT_TIMER, &MonitorCanvas::on_timer, this);
+            timer_->Start(1000);
+
+            ram_usage_ = monitor_.get_ram_usage();
         }
+
+    void MonitorCanvas::on_timer(wxTimerEvent&) {
+        ram_usage_ = monitor_.get_ram_usage();
+        panel_->Refresh();
+    }
 
     void MonitorCanvas::on_paint(wxPaintEvent&) {
         wxPaintDC dc(panel_);
@@ -30,7 +40,7 @@ namespace system_monitor {
         wxRect driveRect(2 * spacing + cardWidth, spacing, cardWidth, cardHeight);
         wxRect cpuRect(3 * spacing + 2 *cardWidth, spacing, cardWidth, cardHeight);
 
-        draw_card(dc, ramRect, "RAM", 1);
+        draw_card(dc, ramRect, "RAM", ram_usage_);
         draw_card(dc, driveRect, "Drive", 0.35);
         draw_card(dc, cpuRect, "CPU", 0.12);
     }

@@ -7,9 +7,12 @@ namespace system_monitor {
         public:
             Monitor() = default;
 
-            const char* get_cpu_usage() const {return "CPU: ";}
-            const char* get_ram_usage() const {return "RAM: ";}
+            double get_ram_usage();
             const char* get_drive_usage() const {return "Drive: ";}
+            const char* get_cpu_usage() const {return "CPU: ";}
+
+            double calc_used_ram(unsigned long long total, unsigned long long free);
+
     };
 }
 

@@ -12,8 +12,14 @@ namespace system_monitor {
         private:
             Monitor monitor_;
             wxPanel* panel_;
+            wxTimer* timer_;
+
+            double ram_usage_; // last read RAM usage
+            double drive_usage_; // last read Drive usage
+            double cpu_usage_;; // last read CPU usage
 
             void on_paint(wxPaintEvent& event);
+            void on_timer(wxTimerEvent& event);
             void render (wxDC& dc);
 
             void draw_card(wxDC& dc, const wxRect& rect, const wxString& label, double usage);
