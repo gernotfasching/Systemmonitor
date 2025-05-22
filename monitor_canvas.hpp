@@ -10,11 +10,14 @@ namespace system_monitor {
             MonitorCanvas(const wxString& title);
 
         private:
+            Monitor monitor_;
+            wxPanel* panel_;
+
             void on_paint(wxPaintEvent& event);
             void render (wxDC& dc);
 
-            Monitor monitor_;
-            wxPanel* panel_;
+            void draw_card(wxDC& dc, const wxRect& rect, const wxString& label, double usage);
+            void draw_usage_circle(wxDC& dc, int center_x, int center_y, int radius, double usage, const wxColour& color, const wxString& usage_text);
     };
 }
 

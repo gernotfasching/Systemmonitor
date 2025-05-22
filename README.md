@@ -8,16 +8,19 @@ Der **System-Monitor** ist eine grafische Anwendung zur Überwachung wichtiger S
 - Visualisierung der RAM-Nutzung
 - Überwachung des verfügbaren Festplattenspeichers
 - Analyse der Netzwerkaktivität
-- Grafische Darstellung mit **wxGauge** in einer **wxWidgets**-Oberfläche
+- Grafische Darstellung in einer **wxWidgets**-Oberfläche
 
 ## Technologien
 - **C++** mit **wxWidgets** für die GUI
-- **wxGauge** für Balkendiagramme
-- **sysinfo** oder **psutil** für das Abrufen von Systemdaten
+- **wxDrawEllipseArc** für Kreis Diagramm
+- **sysinfo** für das Abrufen von Systemdaten
 
 ## Installation & Nutzung
 1. wxWidgets installieren (siehe [offizielle Anleitung](https://www.wxwidgets.org/))
 2. Abhängigkeiten wie `sysinfo` oder `psutil` einbinden
 3. Projekt kompilieren:
-   ```sh
-   g++ main.cpp -o system-monitor `wx-config --cxxflags --libs`
+   ```shell
+   mkdir build && cd build
+   cmake ..
+   make -j8  # use 8 processor cores when compiling
+   ```
