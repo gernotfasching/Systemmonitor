@@ -14,10 +14,12 @@ namespace system_monitor {
             timer_->Start(1000);
 
             ram_usage_ = monitor_.get_ram_usage();
+            drive_usage_ = monitor_.get_drive_usage("/");
         }
 
     void MonitorCanvas::on_timer(wxTimerEvent&) {
         ram_usage_ = monitor_.get_ram_usage();
+        drive_usage_ = monitor_.get_drive_usage("/");
         panel_->Refresh();
     }
 
@@ -41,7 +43,7 @@ namespace system_monitor {
         wxRect cpuRect(3 * spacing + 2 *cardWidth, spacing, cardWidth, cardHeight);
 
         draw_card(dc, ramRect, "RAM", ram_usage_);
-        draw_card(dc, driveRect, "Drive", 0.35);
+        draw_card(dc, driveRect, "Drive", drive_usage_);
         draw_card(dc, cpuRect, "CPU", 0.12);
     }
 

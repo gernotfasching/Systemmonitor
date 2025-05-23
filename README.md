@@ -13,7 +13,8 @@ Der **System-Monitor** ist eine grafische Anwendung zur Überwachung wichtiger S
 ## Technologien
 - **C++** mit **wxWidgets** für die GUI
 - **wxDrawEllipseArc** für Kreis Diagramm
-- **sysinfo** für das Abrufen von Systemdaten
+- **sysinfo** für das Abrufen von Systemdaten(RAM)
+- **statvfs** für das Abrufen von Systemdaten(Drive)
 
 ## Installation & Nutzung
 1. wxWidgets installieren (siehe [offizielle Anleitung](https://www.wxwidgets.org/))
