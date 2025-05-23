@@ -63,6 +63,23 @@ namespace system_monitor {
             return;
         }
         // Drive
+        center_x = driveRect.x + driveRect.width / 2;
+        center_y = driveRect.y + driveRect.height / 2 - circle_offset_y;
+        show_more_y = center_y + (circle_size / 2) + show_more_offset_y;
+        if(get_show_more_rect(center_x, show_more_y, dc, ram_expanded_).Contains(x, y)) {
+            drive_expanded_ = !drive_expanded_;
+            panel_->Refresh();
+            return;
+        }
+        // CPU
+        center_x = cpuRect.x + cpuRect.width / 2;
+        center_y = cpuRect.y + cpuRect.height / 2 - circle_offset_y;
+        show_more_y = center_y + (circle_size / 2) + show_more_offset_y;
+        if(get_show_more_rect(center_x, show_more_y, dc, ram_expanded_).Contains(x, y)) {
+            cpu_expanded_ = !cpu_expanded_;
+            panel_->Refresh();
+            return;
+        }
     }
 
     wxRect MonitorCanvas::get_show_more_rect(int center_x, int y, wxDC& dc, bool expanded) {
