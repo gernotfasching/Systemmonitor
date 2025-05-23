@@ -20,11 +20,10 @@ namespace system_monitor {
 
             bool ram_expanded_ = false;
             bool drive_expanded_ = false;
-            bool cpu_expanded_ = true;
+            bool cpu_expanded_ = false;
 
             static constexpr int n_cards = 3;               // number of n_cards
             static constexpr int spacing = 30;              // spacing between n_cards
-            static constexpr int card_corner_radius = 20;
             static constexpr int title_font_size = 14;
             static constexpr int percent_font_size = 18;
 

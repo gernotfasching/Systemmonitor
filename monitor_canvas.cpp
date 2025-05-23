@@ -13,7 +13,7 @@ namespace system_monitor {
             panel_->Bind(wxEVT_LEFT_DOWN, &MonitorCanvas::on_click, this);
             timer_ = new wxTimer(this);
             Bind(wxEVT_TIMER, &MonitorCanvas::on_timer, this);
-            timer_->Start(1000);
+            timer_->Start(500);
 
             ram_usage_ = monitor_.get_ram_usage();
             drive_usage_ = monitor_.get_drive_usage("/");
@@ -38,6 +38,31 @@ namespace system_monitor {
 
         int width, height;
         GetClientSize(&width, &height);
+
+        int cardWidth = (width - (n_cards + 1) * spacing) / n_cards;
+        int cardHeight = height / 2 - 2 * spacing;
+
+        wxRect ramRect(spacing, spacing, cardWidth, cardHeight);
+        wxRect driveRect(2 * spacing + cardWidth, spacing, cardWidth, cardHeight);
+        wxRect cpuRect(3 * spacing + 2 * cardWidth, spacing, cardWidth, cardHeight);
+
+        int circle_size = std::min(cardWidth, cardHeight) * 0.6;
+        int center_x, center_y, show_more_y;
+        wxClientDC dc(panel_);
+
+        const int circle_offset_y = 10;
+        const int show_more_offset_y = 18;
+
+        // RAM
+        center_x = ramRect.x + ramRect.width / 2;
+        center_y = ramRect.y + ramRect.height / 2 - circle_offset_y;
+        show_more_y = center_y + (circle_size / 2) + show_more_offset_y;
+        if(get_show_more_rect(center_x, show_more_y, dc, ram_expanded_).Contains(x, y)) {
+            ram_expanded_ = !ram_expanded_;
+            panel_->Refresh();
+            return;
+        }
+        // Drive
     }
 
     wxRect MonitorCanvas::get_show_more_rect(int center_x, int y, wxDC& dc, bool expanded) {
