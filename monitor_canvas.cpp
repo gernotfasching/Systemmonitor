@@ -2,7 +2,7 @@
 
 namespace system_monitor {
     MonitorCanvas::MonitorCanvas(const wxString& title)
-        : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(700, 400))
+        : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(1400, 800))
         {
             SetBackgroundStyle(wxBG_STYLE_PAINT);
             panel_ = new wxPanel(this);
@@ -15,11 +15,13 @@ namespace system_monitor {
 
             ram_usage_ = monitor_.get_ram_usage();
             drive_usage_ = monitor_.get_drive_usage("/");
+            cpu_usage_ = monitor_.get_cpu_usage();
         }
 
     void MonitorCanvas::on_timer(wxTimerEvent&) {
         ram_usage_ = monitor_.get_ram_usage();
         drive_usage_ = monitor_.get_drive_usage("/");
+        cpu_usage_ = monitor_.get_cpu_usage();
         panel_->Refresh();
     }
 
@@ -44,7 +46,7 @@ namespace system_monitor {
 
         draw_card(dc, ramRect, "RAM", ram_usage_);
         draw_card(dc, driveRect, "Drive", drive_usage_);
-        draw_card(dc, cpuRect, "CPU", 0.12);
+        draw_card(dc, cpuRect, "CPU", cpu_usage_);
     }
 
     void MonitorCanvas::draw_card(wxDC& dc, const wxRect& rect, const wxString& label, double usage) {
@@ -69,13 +71,7 @@ namespace system_monitor {
         wxString usage_text = wxString::Format("%.1f%%", usage * 100.0);
 
         draw_usage_circle(dc, center_x, center_y, circle_radius, usage, usage_col, usage_text);
-
-        // Draw the label below
-        wxFont label_font(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
-        dc.SetFont(label_font);
-        int tw, th;
-        dc.GetTextExtent(label, &tw, &th);
-        dc.DrawText(label, center_x - tw/2, rect.y + rect.height - th);
+        draw_title(dc, rect.x, rect.y, label, rect.width);
     }
 
 
@@ -89,20 +85,34 @@ namespace system_monitor {
         double start_angle = -90.0; // top
         double end_angle = start_angle + usage * 360.0;
 
-
         if (usage > 0.0) {
             if (usage >= 1.0) usage = 0.999; // DrawEllipticArc does not allow values over 0.999
             dc.DrawEllipticArc(center_x - radius, center_y - radius, 2 * radius, 2 * radius,
                                start_angle, end_angle);
         }
+        draw_percentage_text(dc, center_x, center_y, usage_text);
+    }
 
-        // Draw usage percent centered
-        wxFont usage_font(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
-        dc.SetFont(usage_font);
+    void MonitorCanvas::draw_title(wxDC& dc, int x, int y, const wxString& label, int box_width) {
+        wxFont font(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+
+        int tw, th;
+        dc.GetTextExtent(label, &tw, &th);
+
+        int label_x = x + (box_width - tw) / 2;
+        int label_y = y +  18;
+
+        dc.DrawText(label, label_x, label_y);
+    }
+
+    void MonitorCanvas::draw_percentage_text(wxDC& dc, int center_x, int center_y, const wxString& usage_text) {
+        wxFont font(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+        dc.SetFont(font);
         dc.SetTextForeground(*wxBLACK);
+
         int tw, th;
         dc.GetTextExtent(usage_text, &tw, &th);
-        dc.DrawText(usage_text, center_x - tw/2, center_y - th/2);
+        dc.DrawText(usage_text, center_x - tw / 2, center_y - th / 2);
     }
 
 }
