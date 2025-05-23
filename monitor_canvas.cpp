@@ -1,4 +1,5 @@
 #include "monitor_canvas.hpp"
+#include <wx/font.h>
 
 namespace system_monitor {
     MonitorCanvas::MonitorCanvas(const wxString& title)
@@ -9,6 +10,7 @@ namespace system_monitor {
             panel_->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
             panel_->Bind(wxEVT_PAINT, &MonitorCanvas::on_paint, this);
+            panel_->Bind(wxEVT_LEFT_DOWN, &MonitorCanvas::on_click, this);
             timer_ = new wxTimer(this);
             Bind(wxEVT_TIMER, &MonitorCanvas::on_timer, this);
             timer_->Start(1000);
@@ -30,12 +32,30 @@ namespace system_monitor {
         render(dc);
     }
 
+    void MonitorCanvas::on_click(wxMouseEvent& event) {
+        int x = event.GetX();
+        int y = event.GetY();
+
+        int width, height;
+        GetClientSize(&width, &height);
+    }
+
+    wxRect MonitorCanvas::get_show_more_rect(int center_x, int y, wxDC& dc, bool expanded) {
+        wxFont font(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+        dc.SetFont(font);
+        dc.SetTextForeground(*wxBLUE);
+
+        wxString text = expanded ? "show less" : "show more";
+
+        int tw, th;
+        dc.GetTextExtent(text, &tw, &th);
+
+        return wxRect(center_x - tw / 2 - 4, y - 2, tw + 8, th + 4);
+    }
+
     void MonitorCanvas::render(wxDC& dc) {
         int width, height;
         GetClientSize(&width, &height);
-
-        const int n_cards = 3;
-        const int spacing = 30;
 
         int cardWidth = (width - (n_cards + 1) * spacing) / n_cards;
         int cardHeight = height / 2 - 2 * spacing;
@@ -71,7 +91,16 @@ namespace system_monitor {
         wxString usage_text = wxString::Format("%.1f%%", usage * 100.0);
 
         draw_usage_circle(dc, center_x, center_y, circle_radius, usage, usage_col, usage_text);
+
+        bool expanded = false;
+        if(label == "RAM") expanded = ram_expanded_;
+        else if (label == "Drive") expanded = drive_expanded_;
+        else if (label == "CPU") expanded = cpu_expanded_;
+
+
         draw_title(dc, rect.x, rect.y, label, rect.width);
+        int show_more_y = center_y + circle_radius + 18;
+        draw_show_more_text(dc, center_x, show_more_y, expanded);
     }
 
 
@@ -94,7 +123,9 @@ namespace system_monitor {
     }
 
     void MonitorCanvas::draw_title(wxDC& dc, int x, int y, const wxString& label, int box_width) {
-        wxFont font(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+        wxFont font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+        dc.SetFont(font);
+        dc.SetTextForeground(*wxBLACK);
 
         int tw, th;
         dc.GetTextExtent(label, &tw, &th);
@@ -106,7 +137,7 @@ namespace system_monitor {
     }
 
     void MonitorCanvas::draw_percentage_text(wxDC& dc, int center_x, int center_y, const wxString& usage_text) {
-        wxFont font(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+        wxFont font(percent_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
         dc.SetFont(font);
         dc.SetTextForeground(*wxBLACK);
 
@@ -115,4 +146,16 @@ namespace system_monitor {
         dc.DrawText(usage_text, center_x - tw / 2, center_y - th / 2);
     }
 
+    void MonitorCanvas::draw_show_more_text(wxDC& dc, int center_x, int y, bool expanded) {
+        wxFont font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+        dc.SetFont(font);
+        dc.SetTextForeground(*wxBLUE);
+
+        wxString text = expanded ? "show less" : "show more";
+
+        int tw, th;
+        dc.GetTextExtent(text, &tw, &th);
+
+        dc.DrawText(text, center_x - tw / 2, y);
+    }
 }
