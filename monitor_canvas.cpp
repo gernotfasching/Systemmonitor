@@ -117,7 +117,7 @@ namespace system_monitor {
 
         for(int i = 0; i < n_cards; ++i){
             wxRect cardRect(x, spacing, base_cardWidth, card_heights[i]);
-            draw_card(dc, cardRect, labels[i], usages[i]);
+            draw_card(dc, cardRect, labels[i], usages[i], expanded_arr[i], base_cardHeight);
             x += base_cardWidth + spacing;
         }
 
@@ -130,7 +130,7 @@ namespace system_monitor {
         // draw_card(dc, cpuRect, "CPU", cpu_usage_);
     }
 
-    void MonitorCanvas::draw_card(wxDC& dc, const wxRect& rect, const wxString& label, double usage) {
+    void MonitorCanvas::draw_card(wxDC& dc, const wxRect& rect, const wxString& label, double usage, bool expanded, int base_cardHeight) {
         // Draw rounded rectangle (card background)
         wxColour card_bg(255, 255, 255);
         wxColour card_border(180, 180, 180);
@@ -140,9 +140,9 @@ namespace system_monitor {
         dc.DrawRoundedRectangle(rect.x, rect.y, rect.width, rect.height, corner_radius);
 
         // Draw the usage circle
-        int circle_size = std::min(rect.width, rect.height) * 0.6;
         int center_x = rect.x + rect.width / 2;
-        int center_y = rect.y + rect.height / 2 - 10;
+        int center_y = rect.y + base_cardHeight / 2 - 10;
+        int circle_size = std::min(rect.width, base_cardHeight) * 0.6;
         int circle_radius = circle_size / 2;
 
         wxColour usage_col(76, 175, 80); // RAM
@@ -152,12 +152,6 @@ namespace system_monitor {
         wxString usage_text = wxString::Format("%.1f%%", usage * 100.0);
 
         draw_usage_circle(dc, center_x, center_y, circle_radius, usage, usage_col, usage_text);
-
-        bool expanded = false;
-        if(label == "RAM") expanded = ram_expanded_;
-        else if (label == "Drive") expanded = drive_expanded_;
-        else if (label == "CPU") expanded = cpu_expanded_;
-
 
         draw_title(dc, rect.x, rect.y, label, rect.width);
         int show_more_y = center_y + circle_radius + 18;

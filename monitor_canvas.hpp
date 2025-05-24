@@ -35,7 +35,7 @@ namespace system_monitor {
 
             void render (wxDC& dc);
 
-            void draw_card(wxDC& dc, const wxRect& rect, const wxString& label, double usage);
+            void draw_card(wxDC& dc, const wxRect& rect, const wxString& label, double usage, bool expanded, int base_cardHeight);
             void draw_usage_circle(wxDC& dc, int center_x, int center_y, int radius, double usage, const wxColour& color, const wxString& usage_text);
             void draw_title(wxDC&, int x, int y, const wxString& label, int box_width);
             void draw_percentage_text(wxDC& dc, int center_x, int center_y, const wxString& usage_text);
