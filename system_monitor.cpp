@@ -3,6 +3,7 @@
 #include <sstream>
 #include <thread>
 #include <cstdio>
+#include <array>
 
 // See: https://man7.org/linux/man-pages/man2/sysinfo.2.html
 #include <sys/sysinfo.h>
@@ -31,10 +32,12 @@ namespace system_monitor {
         return static_cast<unsigned long>(info.procs);
     }
 
+    // number of cpu cores
     unsigned int Monitor::General::get_cpu_cores() {
         return std::thread::hardware_concurrency();
     }
 
+    // cpu model name
     string Monitor::General::get_cpu_model() {
         std::ifstream cpuinfo("/proc/cpuinfo");
         string line, model;
@@ -51,6 +54,31 @@ namespace system_monitor {
         }
         return model;
     }
+
+    // name of product
+    string Monitor::General::get_product_name() {
+        std::ifstream file("/sys/devices/virtual/dmi/id/product_name");
+        string name;
+        if(!file.is_open()) return "unknown";
+        std::getline(file, name);
+        return name;
+    }
+
+    // version of os
+    string Monitor::General::get_distro_version() {
+        return "Hello";
+    }
+
+    // version of qt
+    string Monitor::General::get_qt_version() {
+        return "Hello";
+    }
+
+    // version of kernel
+    string Monitor::General::get_kernel_version() {
+        return "Hello";
+    }
+
 
     // CPU
     double Monitor::Cpu::get_usage() {

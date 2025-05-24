@@ -295,6 +295,10 @@ namespace system_monitor {
 
         unsigned int core_num = monitor_.general.get_cpu_cores();
         wxString model_name = monitor_.general.get_cpu_model();
+        wxString product_name = monitor_.general.get_product_name();
+        wxString kde_version = monitor_.general.get_distro_version();
+        wxString qt_version = monitor_.general.get_qt_version();
+        wxString kernel_version = monitor_.general.get_kernel_version();
 
         unsigned long uptime = monitor_.general.get_uptime();
         unsigned long procs_num = monitor_.general.get_procs_num();
@@ -303,11 +307,24 @@ namespace system_monitor {
 
         dc.SetFont(info_font);
 
-        wxString cpus = wxString::Format("Processors: %ui x " + model_name, core_num);
+        wxString cpus = wxString::Format("Processors: %u x " + model_name, core_num);
+        wxString product_text = wxString::Format("Productname: " + product_name);
+        wxString os_version_text = wxString::Format("KDE-Plasma-Version: " + kde_version);
+        wxString qt_version_text = wxString::Format("Qt-Version: " + qt_version);
+        wxString kernel_text = wxString::Format("Kernel-Version: " + kernel_version);
         wxString uptime_text = wxString::Format("System uptime since boot (seconds): %llu", uptime);
         wxString procs_text = wxString::Format("Number of processes running: %llu", procs_num);
 
+
         dc.DrawText(cpus, info_x, line_y);
+        line_y += spacing;
+        dc.DrawText(product_text, info_x, line_y);
+        line_y += spacing;
+        dc.DrawText(os_version_text, info_x, line_y);
+        line_y += spacing;
+        dc.DrawText(qt_version_text, info_x, line_y);
+        line_y += spacing;
+        dc.DrawText(kernel_text, info_x, line_y);
         line_y += spacing;
         dc.DrawText(uptime_text, info_x, line_y);
         line_y += spacing;

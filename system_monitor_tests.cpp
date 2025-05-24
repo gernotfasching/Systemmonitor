@@ -5,7 +5,8 @@
 #include <string>
 
 // General Tests
-TEST_CASE("Monitor::General get_uptime/get_procs_num/...", "[system_monitor][General]") {
+// uptime and number of processes
+TEST_CASE("Monitor::General get_uptime/get_procs_num/", "[system_monitor][General]") {
     system_monitor::Monitor::General general;
 
     unsigned long uptime = general.get_uptime();
@@ -13,6 +14,31 @@ TEST_CASE("Monitor::General get_uptime/get_procs_num/...", "[system_monitor][Gen
 
     CHECK(uptime >= 0);       // Uptime is over 0
     CHECK(procs_num >= 0);        // Number of processes is over 0
+}
+
+// Number of Cores and cpu model name
+TEST_CASE("Monitor::General get_cpu_cores/get_cpu_model/", "[system_monitor][General]") {
+    system_monitor::Monitor::General general;
+
+    unsigned int num_cores = general.get_cpu_cores();
+    std::string model_name = general.get_cpu_model();
+
+    CHECK(num_cores >= 0);       // num_cores is over 0
+    CHECK(model_name != "");     // model_name should not equal empty string
+}
+
+TEST_CASE("Monitor::General get_distro_version/get_kernel_version/get_product_name/get_qt_version", "[system_monitor][General]") {
+    system_monitor::Monitor::General general;
+
+    std::string distro_version = general.get_distro_version();
+    std::string kernel_version = general.get_kernel_version();
+    std::string product_name = general.get_product_name();
+    std::string qt_version = general.get_qt_version();
+
+    CHECK(distro_version != "");     // distro_version should not equal empty string
+    CHECK(kernel_version != "");     // kernel_version should not equal empty string
+    CHECK(product_name != "");       // product_name should not equal empty string
+    CHECK(qt_version != "");         // qt_version should not equal empty string
 }
 
 // CPU Tests
