@@ -223,10 +223,16 @@ namespace system_monitor {
         int tw, th;
         dc.GetTextExtent(text, &tw, &th);
 
-        dc.DrawRoundedRectangle((center_x - tw/2 - 1), y, tw + 2, th + 2, 3);
+        int button_width = tw + 20;
+        int button_height = th + 20;
+        int button_x = center_x - button_width / 2;
+
+        dc.SetBrush(wxBrush(wxColor(230, 242, 255)));
+        dc.SetPen(wxPen(wxColor(33, 150, 242), 2));
+        dc.DrawRoundedRectangle(button_x, y, button_width, button_height, 8);
 
         dc.SetTextForeground(wxColour(33, 150, 243));
-        dc.DrawText(text, center_x - tw / 2, y);
+        dc.DrawText(text, center_x - tw / 2, y + 9);
     }
 
     void MonitorCanvas::draw_ram_info(wxDC& dc, const Cards& card, int info_x, int info_y) {

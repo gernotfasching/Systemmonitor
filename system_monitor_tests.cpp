@@ -9,10 +9,10 @@
 TEST_CASE("Monitor::General get_uptime/get_procs_num/", "[system_monitor][General]") {
     system_monitor::Monitor::General general;
 
-    unsigned long uptime = general.get_uptime();
+    unsigned long uptime1 = general.get_uptime();
     unsigned long procs_num = general.get_procs_num();
 
-    CHECK(uptime >= 0);       // Uptime is over 0
+    CHECK(uptime1 >= 0);       // Uptime is over 0
     CHECK(procs_num >= 0);        // Number of processes is over 0
 }
 
@@ -20,11 +20,16 @@ TEST_CASE("Monitor::General get_uptime/get_procs_num/", "[system_monitor][Genera
 TEST_CASE("Monitor::General get_cpu_cores/get_cpu_model/", "[system_monitor][General]") {
     system_monitor::Monitor::General general;
 
-    unsigned int num_cores = general.get_cpu_cores();
+    unsigned int num_cores1 = general.get_cpu_cores();
+    unsigned int num_cores2 = general.get_cpu_cores();
     std::string model_name = general.get_cpu_model();
 
-    CHECK(num_cores >= 0);       // num_cores is over 0
-    CHECK(model_name != "");     // model_name should not equal empty string
+    CHECK(num_cores1 > 0);         // num_cores1 is over 0
+    CHECK(num_cores2 > 0);         // num_cores2 is over 0
+    CHECK(num_cores1 <= 257);       // Plausible number of cores
+    CHECK(num_cores2 <= 257);       // show me your cpu please!!!
+    CHECK(num_cores1 == num_cores2); // constistent number of cores
+    CHECK(!model_name.empty());     // model_name  should not be empty
 }
 
 TEST_CASE("Monitor::General get_os_version/get_kernel_version/get_product_name/", "[system_monitor][General]") {
@@ -34,9 +39,9 @@ TEST_CASE("Monitor::General get_os_version/get_kernel_version/get_product_name/"
     std::string kernel_version = general.get_kernel_version();
     std::string product_name = general.get_product_name();
 
-    CHECK(distro_version != "");     // distro_version should not equal empty string
-    CHECK(kernel_version != "");     // kernel_version should not equal empty string
-    CHECK(product_name != "");       // product_name should not equal empty string
+    CHECK(!distro_version.empty());     // distro_version should not equal empty string
+    CHECK(!kernel_version.empty());     // kernel_version should not equal empty string
+    CHECK(!product_name.empty());       // product_name should not equal empty string
 }
 
 // CPU Tests
@@ -140,4 +145,21 @@ TEST_CASE("Monitor::Drive path", "[system_monitor][Drive]") {
     CHECK(drive.total("/wrong/path/for/total/test") == 0);
     CHECK(drive.free("/wrong/path/for/total/test") == 0);
     CHECK(drive.used("/wrong/path/for/total/test") == 0);
+}
+
+// stress test of all
+TEST_CASE("Monitor::Ram and Drive don't crash over multiple valls", "[system_monitor][Ram][Drive]") {
+    system_monitor::Monitor::Ram ram;
+    system_monitor::Monitor::Drive drive;
+
+    for(int i = 0; i < 20; ++i) {
+        ram.get_usage();
+        ram.total();
+        ram.free();
+        ram.used();
+        drive.get_usage();
+        drive.total();
+        drive.free();
+        drive.used();
+    }
 }
