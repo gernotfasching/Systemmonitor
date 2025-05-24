@@ -14,5 +14,22 @@ set(CPP_SRCS
     system_monitor.cpp
 )
 
+# Main Executable
 add_executable(${PROJECT_NAME} ${CPP_SRCS})
 target_link_libraries(${PROJECT_NAME} ${wxWidgets_LIBRARIES})
+
+# TESTS
+
+# Sources
+set(TEST_SRCS
+    system_monitor_tests.cpp
+    system_monitor.cpp
+)
+
+add_executable(system_monitor_tests ${TEST_SRCS})
+target_link_libraries(system_monitor_tests catch2 ${wxWidgets_LIBRARIES})
+
+# Register tests with CTest
+add_test(NAME system_monitor_tests COMMAND system_monitor_tests)
+
+enable_testing()

@@ -1,9 +1,12 @@
 #include "system_monitor.hpp"
 #include <fstream>
 #include <sstream>
+// See: https://man7.org/linux/man-pages/man2/sysinfo.2.html
 #include <sys/sysinfo.h>
 #include <sys/statvfs.h>
 #include <unistd.h>
+#include <iostream>
+#include <iomanip>
 
 
 namespace system_monitor {

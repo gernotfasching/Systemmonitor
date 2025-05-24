@@ -6,6 +6,11 @@ namespace system_monitor {
 
     class Monitor {
         public:
+            class General {
+                public:
+                    double get_uptime();
+                    double get_procs_num();
+            };
             class Cpu {
                 public:
                     double get_usage();
