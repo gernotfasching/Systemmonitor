@@ -10,24 +10,24 @@ namespace system_monitor {
             MonitorCanvas(const wxString& title);
 
         private:
-            Monitor monitor_;
-            wxPanel* panel_;
-            wxTimer* timer_;
-
-            double ram_usage_; // last read RAM usage
-            double drive_usage_; // last read Drive usage
-            double cpu_usage_;; // last read CPU usage
-
-            bool ram_expanded_ = false;
-            bool drive_expanded_ = false;
-            bool cpu_expanded_ = false;
+            struct Cards {
+                wxString label;
+                wxRect rect;
+                bool expanded = false;
+                double usage = 0.0;
+            };
 
             static constexpr int n_cards = 3;               // number of n_cards
             static constexpr int spacing = 30;              // spacing between n_cards
             static constexpr int title_font_size = 14;
             static constexpr int percent_font_size = 18;
 
-            wxRect get_show_more_rect(int center_x, int y, wxDC& dc, bool expanded);
+            Monitor monitor_;
+            wxPanel* panel_;
+            wxTimer* timer_;
+            Cards cards_[n_cards];
+
+            wxRect get_show_more_rect(const Cards& card, wxDC& dc) const;
 
             void on_paint(wxPaintEvent& event);
             void on_timer(wxTimerEvent& event);
@@ -35,7 +35,7 @@ namespace system_monitor {
 
             void render (wxDC& dc);
 
-            void draw_card(wxDC& dc, const wxRect& rect, const wxString& label, double usage, bool expanded, int base_cardHeight);
+            void draw_card(wxDC& dc, Cards& card, int base_cardHeight);
             void draw_usage_circle(wxDC& dc, int center_x, int center_y, int radius, double usage, const wxColour& color, const wxString& usage_text);
             void draw_title(wxDC&, int x, int y, const wxString& label, int box_width);
             void draw_percentage_text(wxDC& dc, int center_x, int center_y, const wxString& usage_text);

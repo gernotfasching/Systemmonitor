@@ -1,5 +1,6 @@
 #include "monitor_canvas.hpp"
 #include <wx/font.h>
+#include <wx/gtk/bitmap.h>
 
 namespace system_monitor {
     MonitorCanvas::MonitorCanvas(const wxString& title)
@@ -15,16 +16,18 @@ namespace system_monitor {
             Bind(wxEVT_TIMER, &MonitorCanvas::on_timer, this);
             timer_->Start(500);
 
-            ram_usage_ = monitor_.ram.get_usage();
-            drive_usage_ = monitor_.drive.get_usage("/");
-            cpu_usage_ = monitor_.cpu.get_usage();
+            cards_[0].label = "RAM";
+            cards_[1].label = "Drive";
+            cards_[2].label = "CPU";
+            cards_[0].usage = monitor_.ram.get_usage();
+            cards_[1].usage = monitor_.drive.get_usage();
+            cards_[2].usage = monitor_.cpu.get_usage();
         }
 
     void MonitorCanvas::on_timer(wxTimerEvent&) {
-        ram_usage_ = monitor_.ram.get_usage();
-        drive_usage_ = monitor_.drive.get_usage();
-        cpu_usage_ = monitor_.cpu.get_usage();
-
+        cards_[0].usage = monitor_.ram.get_usage();
+        cards_[1].usage = monitor_.drive.get_usage();
+        cards_[2].usage = monitor_.cpu.get_usage();
         panel_->Refresh();
     }
 
@@ -37,63 +40,35 @@ namespace system_monitor {
         int x = event.GetX();
         int y = event.GetY();
 
-        int width, height;
-        GetClientSize(&width, &height);
-
-        int cardWidth = (width - (n_cards + 1) * spacing) / n_cards;
-        int cardHeight = height / 2 - 2 * spacing;
-
-        wxRect ramRect(spacing, spacing, cardWidth, cardHeight);
-        wxRect driveRect(2 * spacing + cardWidth, spacing, cardWidth, cardHeight);
-        wxRect cpuRect(3 * spacing + 2 * cardWidth, spacing, cardWidth, cardHeight);
-
-        int circle_size = std::min(cardWidth, cardHeight) * 0.6;
-        int center_x, center_y, show_more_y;
         wxClientDC dc(panel_);
 
-        const int circle_offset_y = 10;
-        const int show_more_offset_y = 18;
-
-        // RAM
-        center_x = ramRect.x + ramRect.width / 2;
-        center_y = ramRect.y + ramRect.height / 2 - circle_offset_y;
-        show_more_y = center_y + (circle_size / 2) + show_more_offset_y;
-        if(get_show_more_rect(center_x, show_more_y, dc, ram_expanded_).Contains(x, y)) {
-            ram_expanded_ = !ram_expanded_;
-            panel_->Refresh();
-            return;
-        }
-        // Drive
-        center_x = driveRect.x + driveRect.width / 2;
-        center_y = driveRect.y + driveRect.height / 2 - circle_offset_y;
-        show_more_y = center_y + (circle_size / 2) + show_more_offset_y;
-        if(get_show_more_rect(center_x, show_more_y, dc, ram_expanded_).Contains(x, y)) {
-            drive_expanded_ = !drive_expanded_;
-            panel_->Refresh();
-            return;
-        }
-        // CPU
-        center_x = cpuRect.x + cpuRect.width / 2;
-        center_y = cpuRect.y + cpuRect.height / 2 - circle_offset_y;
-        show_more_y = center_y + (circle_size / 2) + show_more_offset_y;
-        if(get_show_more_rect(center_x, show_more_y, dc, ram_expanded_).Contains(x, y)) {
-            cpu_expanded_ = !cpu_expanded_;
-            panel_->Refresh();
-            return;
+        for(int i = 0; i < n_cards; ++i){
+            if(get_show_more_rect(cards_[i], dc).Contains(x, y)){
+                cards_[i].expanded = !cards_[i].expanded;
+                panel_->Refresh();
+                break;
+            }
         }
     }
 
-    wxRect MonitorCanvas::get_show_more_rect(int center_x, int y, wxDC& dc, bool expanded) {
-        wxFont font(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+    wxRect MonitorCanvas::get_show_more_rect(const Cards& card, wxDC& dc) const {
+        wxFont font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
         dc.SetFont(font);
         dc.SetTextForeground(*wxBLUE);
 
-        wxString text = expanded ? "show less" : "show more";
+        wxString text = card.expanded ? "show less" : "show more";
 
         int tw, th;
         dc.GetTextExtent(text, &tw, &th);
 
-        return wxRect(center_x - tw / 2 - 4, y - 2, tw + 8, th + 4);
+        int base_cardHeight = card.rect.height / (card.expanded ? 2 : 1);
+        int center_x = card.rect.x + card.rect.width / 2;
+        int center_y = card.rect.y + base_cardHeight / 2 - 10;
+        int circle_size = std::min(card.rect.width, base_cardHeight) * 0.6;
+        int circle_radius = circle_size / 2;
+        int show_more_y = center_y + circle_radius + 18;
+
+        return wxRect(center_x - tw / 2 - 4, show_more_y - 2, tw + 8, th + 4);
     }
 
     void MonitorCanvas::render(wxDC& dc) {
@@ -103,60 +78,42 @@ namespace system_monitor {
         int base_cardWidth = (width - (n_cards + 1) * spacing) / n_cards;
         int base_cardHeight = height / 2 - 2 * spacing;
 
-        bool expanded_arr[n_cards] = {ram_expanded_, drive_expanded_, cpu_expanded_};
-
-        // Set height of cards
-        int card_heights[n_cards];
-        for(int i = 0; i < n_cards; ++i){
-            card_heights[i] = expanded_arr[i] ? 2 *base_cardHeight : base_cardHeight;
-        }
-
         // Draw cards
         int x = spacing;
-        double usages[n_cards] = {ram_usage_, drive_usage_, cpu_usage_};
-        wxString labels[n_cards] = {"RAM", "Drive", "CPU"};
 
         for(int i = 0; i < n_cards; ++i){
-            wxRect cardRect(x, spacing, base_cardWidth, card_heights[i]);
-            draw_card(dc, cardRect, labels[i], usages[i], expanded_arr[i], base_cardHeight);
+            cards_[i].rect = wxRect(x, spacing, base_cardWidth, cards_[i].expanded ? 2 * base_cardHeight :base_cardHeight);
+            draw_card(dc, cards_[i], base_cardHeight);
             x += base_cardWidth + spacing;
         }
-
-        // wxRect ramRect(spacing, spacing, cardWidth, cardHeight);
-        // wxRect driveRect(2 * spacing + cardWidth, spacing, cardWidth, cardHeight);
-        // wxRect cpuRect(3 * spacing + 2 *cardWidth, spacing, cardWidth, cardHeight);
-        //
-        // draw_card(dc, ramRect, "RAM", ram_usage_);
-        // draw_card(dc, driveRect, "Drive", drive_usage_);
-        // draw_card(dc, cpuRect, "CPU", cpu_usage_);
     }
 
-    void MonitorCanvas::draw_card(wxDC& dc, const wxRect& rect, const wxString& label, double usage, bool expanded, int base_cardHeight) {
+    void MonitorCanvas::draw_card(wxDC& dc, Cards& card, int base_cardHeight) {
         // Draw rounded rectangle (card background)
         wxColour card_bg(255, 255, 255);
         wxColour card_border(180, 180, 180);
         dc.SetBrush(wxBrush(card_bg));
         dc.SetPen(wxPen(card_border, 2));
         const int corner_radius = 20;
-        dc.DrawRoundedRectangle(rect.x, rect.y, rect.width, rect.height, corner_radius);
+        dc.DrawRoundedRectangle(card.rect.x, card.rect.y, card.rect.width, card.rect.height, corner_radius);
 
         // Draw the usage circle
-        int center_x = rect.x + rect.width / 2;
-        int center_y = rect.y + base_cardHeight / 2 - 10;
-        int circle_size = std::min(rect.width, base_cardHeight) * 0.6;
+        int center_x = card.rect.x + card.rect.width / 2;
+        int center_y = card.rect.y + base_cardHeight / 2 - 10;
+        int circle_size = std::min(card.rect.width, base_cardHeight) * 0.6;
         int circle_radius = circle_size / 2;
 
         wxColour usage_col(76, 175, 80); // RAM
-        if (label == "CPU") usage_col = wxColour(33, 150, 243); // CPU
-        else if (label == "Drive") usage_col = wxColour(255, 152, 0); // Drive
+        if (card.label == "CPU") usage_col = wxColour(33, 150, 243); // CPU
+        else if (card.label == "Drive") usage_col = wxColour(255, 152, 0); // Drive
 
-        wxString usage_text = wxString::Format("%.1f%%", usage * 100.0);
+        wxString usage_text = wxString::Format("%.1f%%", card.usage * 100.0);
 
-        draw_usage_circle(dc, center_x, center_y, circle_radius, usage, usage_col, usage_text);
+        draw_usage_circle(dc, center_x, center_y, circle_radius, card.usage, usage_col, usage_text);
 
-        draw_title(dc, rect.x, rect.y, label, rect.width);
+        draw_title(dc, card.rect.x, card.rect.y, card.label, card.rect.width);
         int show_more_y = center_y + circle_radius + 18;
-        draw_show_more_text(dc, center_x, show_more_y, expanded);
+        draw_show_more_text(dc, center_x, show_more_y, card.expanded);
     }
 
 
@@ -172,8 +129,7 @@ namespace system_monitor {
 
         if (usage > 0.0) {
             if (usage >= 1.0) usage = 0.999; // DrawEllipticArc does not allow values over 0.999
-            dc.DrawEllipticArc(center_x - radius, center_y - radius, 2 * radius, 2 * radius,
-                               start_angle, end_angle);
+            dc.DrawEllipticArc(center_x - radius, center_y - radius, 2 * radius, 2 * radius, start_angle, end_angle);
         }
         draw_percentage_text(dc, center_x, center_y, usage_text);
     }
