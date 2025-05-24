@@ -6,21 +6,35 @@ namespace system_monitor {
 
     class Monitor {
         public:
-            Monitor() = default;
+            class Cpu {
+                public:
+                    double get_usage();
 
-            double get_ram_usage();
-            double get_drive_usage(const std::string& path = "/");
-            double get_cpu_usage();
+                private:
+                    unsigned long long last_total_ = 0;
+                    unsigned long long last_idle_ = 0;
+                    bool first_call_ = true;
+            };
 
+            class Ram {
+                public:
+                    double get_usage();
+                    unsigned long long total();
+                    unsigned long long free();
+                    unsigned long long used();
+            };
 
+            class Drive {
+                public:
+                    double get_usage(const std::string& path = "/");
+                    unsigned long long total(const std::string& path = "/");
+                    unsigned long long free(const std::string& path = "/");
+                    unsigned long long used(const std::string& path = "/");
+            };
 
-        private:
-            unsigned long long last_total_ = 0;
-            unsigned long long last_idle_ = 0;
-            bool first_call_ = true;
-
-            double calc_used_ram(unsigned long long total, unsigned long long free);
-            double calc_used_drive(unsigned long long total, unsigned long long used);
+            Cpu cpu;
+            Ram ram;
+            Drive drive;
     };
 }
 

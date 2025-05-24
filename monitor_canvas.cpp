@@ -15,15 +15,16 @@ namespace system_monitor {
             Bind(wxEVT_TIMER, &MonitorCanvas::on_timer, this);
             timer_->Start(500);
 
-            ram_usage_ = monitor_.get_ram_usage();
-            drive_usage_ = monitor_.get_drive_usage("/");
-            cpu_usage_ = monitor_.get_cpu_usage();
+            ram_usage_ = monitor_.ram.get_usage();
+            drive_usage_ = monitor_.drive.get_usage("/");
+            cpu_usage_ = monitor_.cpu.get_usage();
         }
 
     void MonitorCanvas::on_timer(wxTimerEvent&) {
-        ram_usage_ = monitor_.get_ram_usage();
-        drive_usage_ = monitor_.get_drive_usage("/");
-        cpu_usage_ = monitor_.get_cpu_usage();
+        ram_usage_ = monitor_.ram.get_usage();
+        drive_usage_ = monitor_.drive.get_usage();
+        cpu_usage_ = monitor_.cpu.get_usage();
+
         panel_->Refresh();
     }
 
