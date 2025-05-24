@@ -1,12 +1,18 @@
 #include "system_monitor.hpp"
 #include <fstream>
 #include <sstream>
+#include <thread>
+#include <cstdio>
+
 // See: https://man7.org/linux/man-pages/man2/sysinfo.2.html
 #include <sys/sysinfo.h>
 #include <sys/statvfs.h>
+#include <sys/utsname.h>
+
 #include <unistd.h>
 #include <iostream>
-#include <iomanip>
+
+using std::string;
 
 
 namespace system_monitor {
@@ -25,16 +31,37 @@ namespace system_monitor {
         return static_cast<unsigned long>(info.procs);
     }
 
+    unsigned int Monitor::General::get_cpu_cores() {
+        return std::thread::hardware_concurrency();
+    }
+
+    string Monitor::General::get_cpu_model() {
+        std::ifstream cpuinfo("/proc/cpuinfo");
+        string line, model;
+        if(!cpuinfo.is_open()) return "";
+
+        while(std::getline(cpuinfo, line)) {
+            if(line.find("model name") !=string::npos) {
+                size_t pos = line.find(":");
+                if(pos != string::npos) {
+                    model = line.substr(pos + 2);
+                    break;
+                }
+            }
+        }
+        return model;
+    }
+
     // CPU
     double Monitor::Cpu::get_usage() {
         std::ifstream stat_file("/proc/stat");
-        std::string line;
+        string line;
         if(!stat_file.is_open()) return 0.0;
 
         std::getline(stat_file, line);
         std::istringstream ss(line);
 
-        std::string cpu_label;
+        string cpu_label;
         unsigned long long user, nice, system, idle, iowait, irq, softirq, steal;
         ss >> cpu_label >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal;
         unsigned long long idle_time = idle + iowait;

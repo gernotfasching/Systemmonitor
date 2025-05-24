@@ -6,10 +6,20 @@ namespace system_monitor {
 
     class Monitor {
         public:
-            class General {
+            class General {         // for General informations about the system
                 public:
                     unsigned long get_uptime();
                     unsigned long get_procs_num();
+
+                    // Hardware
+                    unsigned int get_cpu_cores();
+                    std::string get_cpu_model();
+                    std::string get_product_name();
+
+                    // Software
+                    std::string get_distro_version();
+                    std::string get_qt_version();
+                    std::string get_kernel_version();
             };
             class Cpu {
                 public:

@@ -15,8 +15,6 @@ TEST_CASE("Monitor::General get_uptime/get_procs_num/...", "[system_monitor][Gen
     CHECK(procs_num >= 0);        // Number of processes is over 0
 }
 
-
-
 // CPU Tests
 TEST_CASE("Monitor::CPU get_usage", "[system_monitor][Cpu]") {
     system_monitor::Monitor::Cpu cpu;

@@ -1,4 +1,5 @@
 #include "monitor_canvas.hpp"
+#include "catch_amalgamated.hpp"
 #include <unistd.h>
 #include <wx/font.h>
 #include <wx/gtk/bitmap.h>
@@ -292,6 +293,9 @@ namespace system_monitor {
 
         dc.DrawText("General informations:", info_x, info_y);
 
+        unsigned int core_num = monitor_.general.get_cpu_cores();
+        wxString model_name = monitor_.general.get_cpu_model();
+
         unsigned long uptime = monitor_.general.get_uptime();
         unsigned long procs_num = monitor_.general.get_procs_num();
 
@@ -299,9 +303,12 @@ namespace system_monitor {
 
         dc.SetFont(info_font);
 
+        wxString cpus = wxString::Format("Processors: %ui x " + model_name, core_num);
         wxString uptime_text = wxString::Format("System uptime since boot (seconds): %llu", uptime);
         wxString procs_text = wxString::Format("Number of processes running: %llu", procs_num);
 
+        dc.DrawText(cpus, info_x, line_y);
+        line_y += spacing;
         dc.DrawText(uptime_text, info_x, line_y);
         line_y += spacing;
         dc.DrawText(procs_text, info_x, line_y);
