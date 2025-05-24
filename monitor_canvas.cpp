@@ -99,16 +99,35 @@ namespace system_monitor {
         int width, height;
         GetClientSize(&width, &height);
 
-        int cardWidth = (width - (n_cards + 1) * spacing) / n_cards;
-        int cardHeight = height / 2 - 2 * spacing;
+        int base_cardWidth = (width - (n_cards + 1) * spacing) / n_cards;
+        int base_cardHeight = height / 2 - 2 * spacing;
 
-        wxRect ramRect(spacing, spacing, cardWidth, cardHeight);
-        wxRect driveRect(2 * spacing + cardWidth, spacing, cardWidth, cardHeight);
-        wxRect cpuRect(3 * spacing + 2 *cardWidth, spacing, cardWidth, cardHeight);
+        bool expanded_arr[n_cards] = {ram_expanded_, drive_expanded_, cpu_expanded_};
 
-        draw_card(dc, ramRect, "RAM", ram_usage_);
-        draw_card(dc, driveRect, "Drive", drive_usage_);
-        draw_card(dc, cpuRect, "CPU", cpu_usage_);
+        // Set height of cards
+        int card_heights[n_cards];
+        for(int i = 0; i < n_cards; ++i){
+            card_heights[i] = expanded_arr[i] ? 2 *base_cardHeight : base_cardHeight;
+        }
+
+        // Draw cards
+        int x = spacing;
+        double usages[n_cards] = {ram_usage_, drive_usage_, cpu_usage_};
+        wxString labels[n_cards] = {"RAM", "Drive", "CPU"};
+
+        for(int i = 0; i < n_cards; ++i){
+            wxRect cardRect(x, spacing, base_cardWidth, card_heights[i]);
+            draw_card(dc, cardRect, labels[i], usages[i]);
+            x += base_cardWidth + spacing;
+        }
+
+        // wxRect ramRect(spacing, spacing, cardWidth, cardHeight);
+        // wxRect driveRect(2 * spacing + cardWidth, spacing, cardWidth, cardHeight);
+        // wxRect cpuRect(3 * spacing + 2 *cardWidth, spacing, cardWidth, cardHeight);
+        //
+        // draw_card(dc, ramRect, "RAM", ram_usage_);
+        // draw_card(dc, driveRect, "Drive", drive_usage_);
+        // draw_card(dc, cpuRect, "CPU", cpu_usage_);
     }
 
     void MonitorCanvas::draw_card(wxDC& dc, const wxRect& rect, const wxString& label, double usage) {
