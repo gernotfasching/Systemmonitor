@@ -11,6 +11,20 @@
 
 namespace system_monitor {
 
+    // General informations
+    // uptime
+    unsigned long Monitor::General::get_uptime() {
+        struct sysinfo info;
+        if(sysinfo(&info) != 0) return 0.0;
+        return static_cast<unsigned long>(info.uptime);
+    }
+    // number of processes
+    unsigned long Monitor::General::get_procs_num() {
+        struct sysinfo info;
+        if(sysinfo(&info) != 0) return 0.0;
+        return static_cast<unsigned long>(info.procs);
+    }
+
     // CPU
     double Monitor::Cpu::get_usage() {
         std::ifstream stat_file("/proc/stat");

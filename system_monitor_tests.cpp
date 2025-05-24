@@ -4,6 +4,19 @@
 #include <limits>
 #include <string>
 
+// General Tests
+TEST_CASE("Monitor::General get_uptime/get_procs_num/...", "[system_monitor][General]") {
+    system_monitor::Monitor::General general;
+
+    unsigned long uptime = general.get_uptime();
+    unsigned long procs_num = general.get_procs_num();
+
+    CHECK(uptime >= 0);       // Uptime is over 0
+    CHECK(procs_num >= 0);        // Number of processes is over 0
+}
+
+
+
 // CPU Tests
 TEST_CASE("Monitor::CPU get_usage", "[system_monitor][Cpu]") {
     system_monitor::Monitor::Cpu cpu;

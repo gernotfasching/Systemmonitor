@@ -1,4 +1,5 @@
 #include "monitor_canvas.hpp"
+#include <unistd.h>
 #include <wx/font.h>
 #include <wx/gtk/bitmap.h>
 
@@ -7,11 +8,15 @@ namespace system_monitor {
         : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(1400, 800))
         {
             SetBackgroundStyle(wxBG_STYLE_PAINT);
-            panel_ = new wxPanel(this);
-            panel_->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
-            panel_->Bind(wxEVT_PAINT, &MonitorCanvas::on_paint, this);
-            panel_->Bind(wxEVT_LEFT_DOWN, &MonitorCanvas::on_click, this);
+            scroll_panel_ = new wxScrolledWindow(this);
+            scroll_panel_->SetScrollRate(10, 10);
+            scroll_panel_->SetBackgroundStyle(wxBG_STYLE_PAINT);
+            scroll_panel_->SetScrollbars(0, 20, 0, 100, 0, 0, true);
+
+            scroll_panel_->Bind(wxEVT_PAINT, &MonitorCanvas::on_paint, this);
+            scroll_panel_->Bind(wxEVT_LEFT_DOWN, &MonitorCanvas::on_click, this);
+
             timer_ = new wxTimer(this);
             Bind(wxEVT_TIMER, &MonitorCanvas::on_timer, this);
             timer_->Start(500);
@@ -28,24 +33,26 @@ namespace system_monitor {
         cards_[0].usage = monitor_.ram.get_usage();
         cards_[1].usage = monitor_.drive.get_usage();
         cards_[2].usage = monitor_.cpu.get_usage();
-        panel_->Refresh();
+        scroll_panel_->Refresh();
     }
 
     void MonitorCanvas::on_paint(wxPaintEvent&) {
-        wxPaintDC dc(panel_);
+        wxPaintDC dc(scroll_panel_);
+        scroll_panel_->DoPrepareDC(dc);
         render(dc);
     }
 
     void MonitorCanvas::on_click(wxMouseEvent& event) {
-        int x = event.GetX();
-        int y = event.GetY();
+        int x, y;
+        scroll_panel_->CalcUnscrolledPosition(event.GetX(), event.GetY(), &x, &y);
 
-        wxClientDC dc(panel_);
+        wxClientDC dc(scroll_panel_);
+        scroll_panel_->DoPrepareDC(dc);
 
         for(int i = 0; i < n_cards; ++i){
             if(get_show_more_rect(cards_[i], dc).Contains(x, y)){
                 cards_[i].expanded = !cards_[i].expanded;
-                panel_->Refresh();
+                scroll_panel_->Refresh();
                 break;
             }
         }
@@ -73,7 +80,7 @@ namespace system_monitor {
 
     void MonitorCanvas::render(wxDC& dc) {
         int width, height;
-        GetClientSize(&width, &height);
+        scroll_panel_->GetClientSize(&width, &height);
 
         int base_cardWidth = (width - (n_cards + 1) * spacing) / n_cards;
         int base_cardHeight = height / 2 - 2 * spacing;
@@ -82,10 +89,26 @@ namespace system_monitor {
         int x = spacing;
 
         for(int i = 0; i < n_cards; ++i){
-            cards_[i].rect = wxRect(x, spacing, base_cardWidth, cards_[i].expanded ? 2 * base_cardHeight :base_cardHeight);
+            cards_[i].rect = wxRect(x, spacing, base_cardWidth, cards_[i].expanded ? 2 * base_cardHeight : base_cardHeight);
             draw_card(dc, cards_[i], base_cardHeight);
             x += base_cardWidth + spacing;
         }
+        if(cards_[0].expanded || cards_[1].expanded || cards_[2].expanded) {
+            is_expanded_ = true;
+        } else {
+            is_expanded_ = false;
+        }
+        is_expanded_ ? draw_system_infos(dc, spacing, 2 * base_cardHeight + spacing) : draw_system_infos(dc, spacing, base_cardHeight + spacing);
+
+        int scroll_height = 0;
+        for(int i = 0; i < n_cards; ++i){
+            int h = cards_[i].rect.GetBottom();
+            if(h > scroll_height)
+                scroll_height = h;
+        }
+        scroll_height += 200;
+        int virt_width = width;
+        scroll_panel_->SetVirtualSize(wxSize(virt_width, scroll_height));
     }
 
     void MonitorCanvas::draw_card(wxDC& dc, Cards& card, int base_cardHeight) {
@@ -241,6 +264,30 @@ namespace system_monitor {
         dc.SetFont(info_font);
         wxString info_text = wxString::Format("Further Informations about CPU need to \nbe implemented.");
         dc.DrawText(info_text, info_x, line_y);
+    }
+
+    void MonitorCanvas::draw_system_infos(wxDC& dc, int info_x, int info_y) {
+        wxFont heading_font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+        wxFont info_font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+
+        dc.SetFont(heading_font);
+        dc.SetTextForeground(*wxWHITE);
+
+        dc.DrawText("General informations:", info_x, info_y);
+
+        unsigned long uptime = monitor_.general.get_uptime();
+        unsigned long procs_num = monitor_.general.get_procs_num();
+
+        int line_y = info_y + 40;
+
+        dc.SetFont(info_font);
+
+        wxString uptime_text = wxString::Format("System uptime since boot (seconds): %llu", uptime);
+        wxString procs_text = wxString::Format("Number of processes running: %llu", procs_num);
+
+        dc.DrawText(uptime_text, info_x, line_y);
+        line_y += spacing;
+        dc.DrawText(procs_text, info_x, line_y);
     }
 
 }

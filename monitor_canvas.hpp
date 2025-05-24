@@ -23,9 +23,11 @@ namespace system_monitor {
             static constexpr int percent_font_size = 18;
 
             Monitor monitor_;
-            wxPanel* panel_;
+            wxScrolledWindow* scroll_panel_;
             wxTimer* timer_;
             Cards cards_[n_cards];
+
+            bool is_expanded_ = true;
 
             wxRect get_show_more_rect(const Cards& card, wxDC& dc) const;
 
@@ -36,6 +38,7 @@ namespace system_monitor {
             void render (wxDC& dc);
 
             void draw_card(wxDC& dc, Cards& card, int base_cardHeight);
+            void draw_info_section(wxDC& dc, int x, int y, int w, int h, bool is_general);
             void draw_usage_circle(wxDC& dc, int center_x, int center_y, int radius, double usage, const wxColour& color, const wxString& usage_text);
             void draw_title(wxDC&, int x, int y, const wxString& label, int box_width);
             void draw_percentage_text(wxDC& dc, int center_x, int center_y, const wxString& usage_text);
@@ -44,6 +47,7 @@ namespace system_monitor {
             void draw_ram_info(wxDC& dc, const Cards& card, int info_x, int info_y);
             void draw_drive_info(wxDC& dc, const Cards& card, int info_x, int info_y);
             void draw_cpu_info(wxDC& dc, const Cards& card, int info_x, int info_y);
+            void draw_system_infos(wxDC& dc, int info_x, int info_y);
     };
 }
 

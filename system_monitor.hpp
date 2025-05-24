@@ -8,8 +8,8 @@ namespace system_monitor {
         public:
             class General {
                 public:
-                    double get_uptime();
-                    double get_procs_num();
+                    unsigned long get_uptime();
+                    unsigned long get_procs_num();
             };
             class Cpu {
                 public:
@@ -40,6 +40,7 @@ namespace system_monitor {
             Cpu cpu;
             Ram ram;
             Drive drive;
+            General general;
     };
 }
 
