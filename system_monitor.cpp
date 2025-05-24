@@ -65,18 +65,34 @@ namespace system_monitor {
     }
 
     // version of os
-    string Monitor::General::get_distro_version() {
-        return "Hello";
-    }
+    string Monitor::General::get_os_version() {
+        FILE* pipe = popen("plasmashell --version 2>/dev/null", "r");
+        if(!pipe)
+            return "Unknown";
 
-    // version of qt
-    string Monitor::General::get_qt_version() {
-        return "Hello";
+        std::array<char, 120> buffer;
+        string result;
+
+        while(fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+            result += buffer.data();
+        }
+        pclose(pipe);
+
+        if(result.empty())
+            return "pipe empty";
+
+        size_t pos = result.find(" ");
+        if(pos != string::npos)
+            return result.substr(pos + 1);
+        return result;
     }
 
     // version of kernel
     string Monitor::General::get_kernel_version() {
-        return "Hello";
+        struct utsname buffer;
+        if(uname(&buffer) != 0)
+            return "nobuffer";
+        return string(buffer.release);
     }
 
 

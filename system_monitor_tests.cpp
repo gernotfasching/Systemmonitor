@@ -27,18 +27,16 @@ TEST_CASE("Monitor::General get_cpu_cores/get_cpu_model/", "[system_monitor][Gen
     CHECK(model_name != "");     // model_name should not equal empty string
 }
 
-TEST_CASE("Monitor::General get_distro_version/get_kernel_version/get_product_name/get_qt_version", "[system_monitor][General]") {
+TEST_CASE("Monitor::General get_os_version/get_kernel_version/get_product_name/", "[system_monitor][General]") {
     system_monitor::Monitor::General general;
 
-    std::string distro_version = general.get_distro_version();
+    std::string distro_version = general.get_os_version();
     std::string kernel_version = general.get_kernel_version();
     std::string product_name = general.get_product_name();
-    std::string qt_version = general.get_qt_version();
 
     CHECK(distro_version != "");     // distro_version should not equal empty string
     CHECK(kernel_version != "");     // kernel_version should not equal empty string
     CHECK(product_name != "");       // product_name should not equal empty string
-    CHECK(qt_version != "");         // qt_version should not equal empty string
 }
 
 // CPU Tests

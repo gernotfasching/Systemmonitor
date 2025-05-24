@@ -62,7 +62,7 @@ namespace system_monitor {
     wxRect MonitorCanvas::get_show_more_rect(const Cards& card, wxDC& dc) const {
         wxFont font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
         dc.SetFont(font);
-        dc.SetTextForeground(*wxBLUE);
+        dc.SetTextForeground(wxColour(33, 150, 243));
 
         wxString text = card.expanded ? "show less" : "show more";
 
@@ -153,6 +153,7 @@ namespace system_monitor {
         }
     }
 
+    // draws sections at the bottom
     void MonitorCanvas::draw_info_section(wxDC& dc, int x, int y, int w, int h, bool is_general) {
         wxColour card_bg(255, 255, 255);
         wxColour card_border(180, 180, 180);
@@ -168,7 +169,7 @@ namespace system_monitor {
         }
     }
 
-
+    // draws the usage circles of components
     void MonitorCanvas::draw_usage_circle(wxDC& dc, int center_x, int center_y, int radius, double usage, const wxColour& color, const wxString& usage_text) {
         wxColour bg_circle(220, 220, 220);
         dc.SetPen(wxPen(bg_circle, 10));
@@ -186,6 +187,7 @@ namespace system_monitor {
         draw_percentage_text(dc, center_x, center_y, usage_text);
     }
 
+    // draws title of each card
     void MonitorCanvas::draw_title(wxDC& dc, int x, int y, const wxString& label, int box_width) {
         wxFont font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
         dc.SetFont(font);
@@ -200,6 +202,7 @@ namespace system_monitor {
         dc.DrawText(label, label_x, label_y);
     }
 
+    // draws percentag text in center of usage circle
     void MonitorCanvas::draw_percentage_text(wxDC& dc, int center_x, int center_y, const wxString& usage_text) {
         wxFont font(percent_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
         dc.SetFont(font);
@@ -210,16 +213,19 @@ namespace system_monitor {
         dc.DrawText(usage_text, center_x - tw / 2, center_y - th / 2);
     }
 
+    // draws show more "button"
     void MonitorCanvas::draw_show_more_text(wxDC& dc, int center_x, int y, bool expanded) {
-        wxFont font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+        wxFont font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
         dc.SetFont(font);
-        dc.SetTextForeground(*wxBLUE);
 
         wxString text = expanded ? "show less" : "show more";
 
         int tw, th;
         dc.GetTextExtent(text, &tw, &th);
 
+        dc.DrawRoundedRectangle((center_x - tw/2 - 1), y, tw + 2, th + 2, 3);
+
+        dc.SetTextForeground(wxColour(33, 150, 243));
         dc.DrawText(text, center_x - tw / 2, y);
     }
 
@@ -296,8 +302,7 @@ namespace system_monitor {
         unsigned int core_num = monitor_.general.get_cpu_cores();
         wxString model_name = monitor_.general.get_cpu_model();
         wxString product_name = monitor_.general.get_product_name();
-        wxString kde_version = monitor_.general.get_distro_version();
-        wxString qt_version = monitor_.general.get_qt_version();
+        wxString kde_version = monitor_.general.get_os_version();
         wxString kernel_version = monitor_.general.get_kernel_version();
 
         unsigned long uptime = monitor_.general.get_uptime();
@@ -309,8 +314,7 @@ namespace system_monitor {
 
         wxString cpus = wxString::Format("Processors: %u x " + model_name, core_num);
         wxString product_text = wxString::Format("Productname: " + product_name);
-        wxString os_version_text = wxString::Format("KDE-Plasma-Version: " + kde_version);
-        wxString qt_version_text = wxString::Format("Qt-Version: " + qt_version);
+        wxString os_version_text = wxString::Format("KDE-Plasma-Version: " + kde_version);;
         wxString kernel_text = wxString::Format("Kernel-Version: " + kernel_version);
         wxString uptime_text = wxString::Format("System uptime since boot (seconds): %llu", uptime);
         wxString procs_text = wxString::Format("Number of processes running: %llu", procs_num);
@@ -321,8 +325,6 @@ namespace system_monitor {
         dc.DrawText(product_text, info_x, line_y);
         line_y += spacing;
         dc.DrawText(os_version_text, info_x, line_y);
-        line_y += spacing;
-        dc.DrawText(qt_version_text, info_x, line_y);
         line_y += spacing;
         dc.DrawText(kernel_text, info_x, line_y);
         line_y += spacing;

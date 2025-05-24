@@ -17,8 +17,7 @@ namespace system_monitor {
                     std::string get_product_name();
 
                     // Software
-                    std::string get_distro_version();
-                    std::string get_qt_version();
+                    std::string get_os_version();
                     std::string get_kernel_version();
             };
             class Cpu {
