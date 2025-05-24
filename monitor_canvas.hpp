@@ -40,6 +40,10 @@ namespace system_monitor {
             void draw_title(wxDC&, int x, int y, const wxString& label, int box_width);
             void draw_percentage_text(wxDC& dc, int center_x, int center_y, const wxString& usage_text);
             void draw_show_more_text(wxDC& dc, int center_x, int y, bool expanded);
+
+            void draw_ram_info(wxDC& dc, const Cards& card, int info_x, int info_y);
+            void draw_drive_info(wxDC& dc, const Cards& card, int info_x, int info_y);
+            void draw_cpu_info(wxDC& dc, const Cards& card, int info_x, int info_y);
     };
 }
 

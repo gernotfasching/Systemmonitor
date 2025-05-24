@@ -114,6 +114,17 @@ namespace system_monitor {
         draw_title(dc, card.rect.x, card.rect.y, card.label, card.rect.width);
         int show_more_y = center_y + circle_radius + 18;
         draw_show_more_text(dc, center_x, show_more_y, card.expanded);
+
+        if(card.expanded) {
+            int info_y = show_more_y + 40;
+            int info_x = card.rect.x + 30;
+            if(card.label == "RAM")
+                draw_ram_info(dc, card, info_x, info_y);
+            if(card.label == "Drive")
+                draw_drive_info(dc, card, info_x, info_y);
+            if(card.label == "CPU")
+                draw_cpu_info(dc, card, info_x, info_y);
+        }
     }
 
 
@@ -170,4 +181,66 @@ namespace system_monitor {
 
         dc.DrawText(text, center_x - tw / 2, y);
     }
+
+    void MonitorCanvas::draw_ram_info(wxDC& dc, const Cards& card, int info_x, int info_y) {
+        wxFont heading_font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+        wxFont info_font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+
+        dc.SetFont(heading_font);
+        dc.SetTextForeground(*wxBLACK);
+
+        dc.DrawText("RAM informations:", info_x, info_y);
+
+        unsigned long long total = monitor_.ram.total();
+        unsigned long long used = monitor_.ram.used();
+        unsigned long long free = monitor_.ram.free();
+
+        int line_y = info_y + 35;
+        dc.SetFont(info_font);
+
+        dc.DrawText(wxString::Format("Total memory: %.2f GiB", static_cast<double>(total) / (1024.0 * 1024 * 1024)), info_x, line_y);
+        line_y += 25;
+        dc.DrawText(wxString::Format("Total memory: %.2f GiB", static_cast<double>(used) / (1024.0 * 1024 * 1024)), info_x, line_y);
+        line_y += 25;
+        dc.DrawText(wxString::Format("Total memory: %.2f GiB", static_cast<double>(free) / (1024.0 * 1024 * 1024)), info_x, line_y);
+    }
+
+    void MonitorCanvas::draw_drive_info(wxDC& dc, const Cards& card, int info_x, int info_y) {
+        wxFont heading_font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+        wxFont info_font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+
+        dc.SetFont(heading_font);
+        dc.SetTextForeground(*wxBLACK);
+
+        dc.DrawText("Drive informations:", info_x, info_y);
+
+        unsigned long long total = monitor_.drive.total();
+        unsigned long long used = monitor_.drive.used();
+        unsigned long long free = monitor_.drive.free();
+
+        wxCoord line_y = info_y + 35;
+        dc.SetFont(info_font);
+
+        dc.DrawText(wxString::Format("Total memory: %.2f GiB", static_cast<double>(total) / (1024.0 * 1024 * 1024)), info_x, line_y);
+        line_y += 25;
+        dc.DrawText(wxString::Format("Total memory: %.2f GiB", static_cast<double>(used) / (1024.0 * 1024 * 1024)), info_x, line_y);
+        line_y += 25;
+        dc.DrawText(wxString::Format("Total memory: %.2f GiB", static_cast<double>(free) / (1024.0 * 1024 * 1024)), info_x, line_y);
+    }
+
+    void MonitorCanvas::draw_cpu_info(wxDC& dc, const Cards& card, int info_x, int info_y) {
+        wxFont heading_font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+        wxFont info_font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+
+        dc.SetFont(heading_font);
+        dc.SetTextForeground(*wxBLACK);
+
+        dc.DrawText("CPU informations:", info_x, info_y);
+        int line_y = info_y + 28;
+
+        dc.SetFont(info_font);
+        wxString info_text = wxString::Format("Further Informations about CPU need to \nbe implemented.");
+        dc.DrawText(info_text, info_x, line_y);
+    }
+
 }

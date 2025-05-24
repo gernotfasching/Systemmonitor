@@ -12,14 +12,16 @@ Der **System-Monitor** ist eine grafische Anwendung zur Überwachung wichtiger S
 
 ## Technologien
 - **C++** mit **wxWidgets** für die GUI
-- **wxDrawEllipseArc** für Kreis Diagramm
+- **WX Technologien:**
+   - 
+   - **wxDrawEllipseArc** für Kreis Diagramm
 - **sysinfo** für das Abrufen von Systemdaten(RAM)
 - **statvfs** für das Abrufen von Systemdaten(Drive)
+- **CPU Berechnung**: Source [stackoverflow](https://stackoverflow.com/questions/23367857/accurate-calculation-of-cpu-usage-given-in-percentage-in-linux/23376195#23376195)
 
 ## Installation & Nutzung
 1. wxWidgets installieren (siehe [offizielle Anleitung](https://www.wxwidgets.org/))
-2. Abhängigkeiten wie `sysinfo` oder `psutil` einbinden
-3. Projekt kompilieren:
+2. Projekt kompilieren:
    ```shell
    mkdir build && cd build
    cmake ..
