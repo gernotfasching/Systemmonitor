@@ -87,28 +87,30 @@ namespace system_monitor {
 
         // Draw cards
         int x = spacing;
+        int y = spacing;
+        int cards_bottom = 0;
 
         for(int i = 0; i < n_cards; ++i){
             cards_[i].rect = wxRect(x, spacing, base_cardWidth, cards_[i].expanded ? 2 * base_cardHeight : base_cardHeight);
             draw_card(dc, cards_[i], base_cardHeight);
             x += base_cardWidth + spacing;
+            if(cards_[i].rect.GetBottom() > cards_bottom)
+                cards_bottom = cards_[i].rect.GetBottom();
         }
-        if(cards_[0].expanded || cards_[1].expanded || cards_[2].expanded) {
-            is_expanded_ = true;
-        } else {
-            is_expanded_ = false;
-        }
-        is_expanded_ ? draw_system_infos(dc, spacing, 2 * base_cardHeight + spacing) : draw_system_infos(dc, spacing, base_cardHeight + spacing);
 
-        int scroll_height = 0;
-        for(int i = 0; i < n_cards; ++i){
-            int h = cards_[i].rect.GetBottom();
-            if(h > scroll_height)
-                scroll_height = h;
-        }
-        scroll_height += 200;
-        int virt_width = width;
-        scroll_panel_->SetVirtualSize(wxSize(virt_width, scroll_height));
+        int info_y = cards_bottom + spacing;
+
+        int section_width = (width - 3 * spacing) / 2;
+        int section_height = (height / 2) - 2 * spacing;
+
+        // General info Section
+        draw_info_section(dc, spacing, info_y, section_width, section_height, true);
+
+        // Network Section
+        draw_info_section(dc, 2 * spacing + section_width, info_y, section_width, section_height, false);
+
+        int scroll_height = info_y + section_height + spacing;
+        scroll_panel_->SetVirtualSize(wxSize(width, scroll_height));
     }
 
     void MonitorCanvas::draw_card(wxDC& dc, Cards& card, int base_cardHeight) {
@@ -147,6 +149,21 @@ namespace system_monitor {
                 draw_drive_info(dc, card, info_x, info_y);
             if(card.label == "CPU")
                 draw_cpu_info(dc, card, info_x, info_y);
+        }
+    }
+
+    void MonitorCanvas::draw_info_section(wxDC& dc, int x, int y, int w, int h, bool is_general) {
+        wxColour card_bg(255, 255, 255);
+        wxColour card_border(180, 180, 180);
+        dc.SetBrush(wxBrush(card_bg));
+        dc.SetPen(wxPen(card_border, 2));
+        const int corner_radius = 20;
+        dc.DrawRoundedRectangle(x, y, w, h, corner_radius);
+
+        if(is_general) {
+            draw_system_infos(dc, x + spacing, y + spacing);
+        } else {
+            draw_network_infos(dc, x + spacing, y + spacing);
         }
     }
 
@@ -271,7 +288,7 @@ namespace system_monitor {
         wxFont info_font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
         dc.SetFont(heading_font);
-        dc.SetTextForeground(*wxWHITE);
+        dc.SetTextForeground(*wxBLACK);
 
         dc.DrawText("General informations:", info_x, info_y);
 
@@ -290,4 +307,27 @@ namespace system_monitor {
         dc.DrawText(procs_text, info_x, line_y);
     }
 
+    void MonitorCanvas::draw_network_infos(wxDC& dc, int info_x, int info_y) {
+        wxFont heading_font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+        wxFont info_font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+
+        dc.SetFont(heading_font);
+        dc.SetTextForeground(*wxBLACK);
+
+        dc.DrawText("Network informations:", info_x, info_y);
+
+        // unsigned long uptime = monitor_.general.get_uptime();
+        // unsigned long procs_num = monitor_.general.get_procs_num();
+        //
+        // int line_y = info_y + 40;
+        //
+        // dc.SetFont(info_font);
+        //
+        // wxString uptime_text = wxString::Format("System uptime since boot (seconds): %llu", uptime);
+        // wxString procs_text = wxString::Format("Number of processes running: %llu", procs_num);
+        //
+        // dc.DrawText(uptime_text, info_x, line_y);
+        // line_y += spacing;
+        // dc.DrawText(procs_text, info_x, line_y);
+    }
 }

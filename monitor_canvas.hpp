@@ -48,6 +48,7 @@ namespace system_monitor {
             void draw_drive_info(wxDC& dc, const Cards& card, int info_x, int info_y);
             void draw_cpu_info(wxDC& dc, const Cards& card, int info_x, int info_y);
             void draw_system_infos(wxDC& dc, int info_x, int info_y);
+            void draw_network_infos(wxDC& dc, int info_x, int info_y);
     };
 }
 
