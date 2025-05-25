@@ -3,6 +3,10 @@
 ## Beschreibung
 Der **System-Monitor** ist eine grafische Anwendung zur Überwachung wichtiger Systemressourcen wie CPU-Auslastung, RAM-Nutzung, Festplattenplatz und Netzwerkaktivität. 
 
+<p align="center">
+  <img src="wireframe/defaultpage.png" alt="application preview" />
+</p>
+
 ## Funktionen
 - Anzeige der aktuellen CPU-Auslastung
 - Visualisierung der RAM-Nutzung
