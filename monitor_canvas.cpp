@@ -253,9 +253,9 @@ namespace system_monitor {
 
         dc.DrawText(wxString::Format("Total memory: %.2f GiB", static_cast<double>(total) / (1024.0 * 1024 * 1024)), info_x, line_y);
         line_y += 25;
-        dc.DrawText(wxString::Format("Total memory: %.2f GiB", static_cast<double>(used) / (1024.0 * 1024 * 1024)), info_x, line_y);
+        dc.DrawText(wxString::Format("Free memory: %.2f GiB", static_cast<double>(used) / (1024.0 * 1024 * 1024)), info_x, line_y);
         line_y += 25;
-        dc.DrawText(wxString::Format("Total memory: %.2f GiB", static_cast<double>(free) / (1024.0 * 1024 * 1024)), info_x, line_y);
+        dc.DrawText(wxString::Format("Used memory: %.2f GiB", static_cast<double>(free) / (1024.0 * 1024 * 1024)), info_x, line_y);
     }
 
     void MonitorCanvas::draw_drive_info(wxDC& dc, const Cards& card, int info_x, int info_y) {
@@ -276,9 +276,9 @@ namespace system_monitor {
 
         dc.DrawText(wxString::Format("Total memory: %.2f GiB", static_cast<double>(total) / (1024.0 * 1024 * 1024)), info_x, line_y);
         line_y += 25;
-        dc.DrawText(wxString::Format("Total memory: %.2f GiB", static_cast<double>(used) / (1024.0 * 1024 * 1024)), info_x, line_y);
+        dc.DrawText(wxString::Format("Free memory: %.2f GiB", static_cast<double>(used) / (1024.0 * 1024 * 1024)), info_x, line_y);
         line_y += 25;
-        dc.DrawText(wxString::Format("Total memory: %.2f GiB", static_cast<double>(free) / (1024.0 * 1024 * 1024)), info_x, line_y);
+        dc.DrawText(wxString::Format("Used memory: %.2f GiB", static_cast<double>(free) / (1024.0 * 1024 * 1024)), info_x, line_y);
     }
 
     void MonitorCanvas::draw_cpu_info(wxDC& dc, const Cards& card, int info_x, int info_y) {
@@ -325,8 +325,8 @@ namespace system_monitor {
         wxString kernel_text = wxString::Format("Kernel-Version: " + kernel_version);
         wxString uptime_text = wxString::Format("System uptime since boot (seconds): %llu", uptime);
         wxString procs_text = wxString::Format("Number of processes running: %llu", procs_num);
-
-        dc.DrawText("General informations:", info_x, line_y);
+        dc.SetFont(subheading_font);
+        dc.DrawText("Hardware:", info_x , line_y);
         dc.SetFont(info_font);
         line_y += spacing;
         dc.DrawText(cpus, info_x, line_y);
@@ -334,7 +334,7 @@ namespace system_monitor {
         dc.DrawText(product_text, info_x, line_y);
         line_y += spacing + 2;
         dc.SetFont(subheading_font);
-        dc.DrawText("General informations:", info_x, line_y);
+        dc.DrawText("Software:", info_x, line_y);
         dc.SetFont(info_font);
         line_y += spacing;
         dc.DrawText(os_version_text, info_x, line_y);
@@ -342,7 +342,7 @@ namespace system_monitor {
         dc.DrawText(kernel_text, info_x, line_y);
         line_y += spacing + 2;
         dc.SetFont(subheading_font);
-        dc.DrawText("General informations:", info_x, line_y);
+        dc.DrawText("Other:", info_x, line_y);
         dc.SetFont(info_font);
         line_y += spacing;
         dc.DrawText(uptime_text, info_x, line_y);
