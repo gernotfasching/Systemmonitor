@@ -1,9 +1,12 @@
 #include "system_monitor.hpp"
 #include <fstream>
 #include <sstream>
+#include <string>
 #include <thread>
 #include <cstdio>
 #include <array>
+#include <chrono>
+#include <regex>
 
 // See: https://man7.org/linux/man-pages/man2/sysinfo.2.html
 #include <sys/sysinfo.h>
@@ -95,6 +98,63 @@ namespace system_monitor {
         return string(buffer.release);
     }
 
+
+    // Network
+    // Helper funtion which returns the primary wirles interface e.g. wlan...
+    string Monitor::Network::get_primary_interface() {
+        std::ifstream wireless("/proc/net/wireless");
+        string line;
+        while(std::getline(wireless, line)) {
+            std::smatch m;
+            if(std::regex_search(line, m, std::regex(R"((\w+):)"))) {
+                return m[1];
+            }
+        }
+        return "";
+    }
+
+    // Function to update download and upload
+    void Monitor::Network::update_counter() {
+        string intf = get_primary_interface();
+        if(intf.empty()) return;
+
+        std::ifstream netdev("/proc/net/dev");
+        std::string line;
+        unsigned long long rx_bytes = 0, tx_bytes = 0;
+        while(std::getline(netdev, line)) {
+            if(line.find(intf) != std::string::npos) {
+                std::istringstream iss(line.substr(line.find(":") + 1));
+                iss >> rx_bytes;
+                for(int i = 0; i < 8; ++i){
+                    iss >> tx_bytes;
+                    break;
+                }
+            }
+        }
+
+        auto now = std::chrono::steady_clock::now();
+        double seconds = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_time_).count();
+
+        if(last_rx_bytes_ != 0 && last_tx_bytes_ != 0 && seconds > 0) {
+            last_download_rate_ = (rx_bytes - last_rx_bytes_) / seconds;
+            last_upload_rate_ = (tx_bytes - last_tx_bytes_) / seconds;
+        }
+        last_rx_bytes_ = rx_bytes;
+        last_tx_bytes_ = tx_bytes;
+        last_time_ = now;
+    }
+
+    // get + update last_download_rate_
+    double Monitor::Network::get_download_rate() {
+        update_counter();
+        return last_download_rate_;
+    }
+
+    // get + update last_upload_rate_
+    double Monitor::Network::get_upload_rate() {
+        update_counter();
+        return last_upload_rate_;
+    }
 
     // CPU
     double Monitor::Cpu::get_usage() {

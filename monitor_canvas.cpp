@@ -160,7 +160,7 @@ namespace system_monitor {
         dc.SetBrush(wxBrush(card_bg));
         dc.SetPen(wxPen(card_border, 2));
         const int corner_radius = 20;
-        dc.DrawRoundedRectangle(x, y, w, h, corner_radius);
+        dc.DrawRoundedRectangle(x, y, w, h + spacing, corner_radius);
 
         if(is_general) {
             draw_system_infos(dc, x + spacing, y + spacing);
@@ -298,6 +298,7 @@ namespace system_monitor {
 
     void MonitorCanvas::draw_system_infos(wxDC& dc, int info_x, int info_y) {
         wxFont heading_font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+        wxFont subheading_font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
         wxFont info_font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
         dc.SetFont(heading_font);
@@ -325,14 +326,24 @@ namespace system_monitor {
         wxString uptime_text = wxString::Format("System uptime since boot (seconds): %llu", uptime);
         wxString procs_text = wxString::Format("Number of processes running: %llu", procs_num);
 
-
+        dc.DrawText("General informations:", info_x, line_y);
+        dc.SetFont(info_font);
+        line_y += spacing;
         dc.DrawText(cpus, info_x, line_y);
         line_y += spacing;
         dc.DrawText(product_text, info_x, line_y);
+        line_y += spacing + 2;
+        dc.SetFont(subheading_font);
+        dc.DrawText("General informations:", info_x, line_y);
+        dc.SetFont(info_font);
         line_y += spacing;
         dc.DrawText(os_version_text, info_x, line_y);
         line_y += spacing;
         dc.DrawText(kernel_text, info_x, line_y);
+        line_y += spacing + 2;
+        dc.SetFont(subheading_font);
+        dc.DrawText("General informations:", info_x, line_y);
+        dc.SetFont(info_font);
         line_y += spacing;
         dc.DrawText(uptime_text, info_x, line_y);
         line_y += spacing;
@@ -341,12 +352,29 @@ namespace system_monitor {
 
     void MonitorCanvas::draw_network_infos(wxDC& dc, int info_x, int info_y) {
         wxFont heading_font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+        wxFont subheading_font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
         wxFont info_font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
         dc.SetFont(heading_font);
         dc.SetTextForeground(*wxBLACK);
 
+        double download_rate = monitor_.network.get_download_rate();
+        double upload_rate = monitor_.network.get_upload_rate();
+
+        wxString dowload_text = wxString::Format("Download: %.1f KiB/s", download_rate);
+        wxString upload_text = wxString::Format("Upload: %.1f KiB/s", upload_rate);
+
+        int download_text_width, download_text_height;
+        dc.GetTextExtent(dowload_text, &download_text_width, &download_text_height);
+
         dc.DrawText("Network informations:", info_x, info_y);
+        dc.SetFont(subheading_font);
+
+        int line_y = info_y + 40;
+
+        dc.DrawText(dowload_text, info_x, line_y);
+        dc.DrawText(upload_text, info_x + 10 * spacing, line_y);
+        line_y += spacing;
 
         // unsigned long uptime = monitor_.general.get_uptime();
         // unsigned long procs_num = monitor_.general.get_procs_num();

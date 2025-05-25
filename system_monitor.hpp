@@ -1,6 +1,7 @@
 #ifndef SYSTEM_MONITOR_HPP
 #define SYSTEM_MONITOR_HPP
 #include <string>
+#include <chrono>
 
 namespace system_monitor {
 
@@ -20,6 +21,23 @@ namespace system_monitor {
                     std::string get_os_version();
                     std::string get_kernel_version();
             };
+
+            class Network {
+                public:
+                    std::string get_wifi_ssid();
+                    double get_download_rate();
+                    double get_upload_rate();
+
+                private:
+                    unsigned long long last_rx_bytes_ = 0;
+                    unsigned long long last_tx_bytes_ = 0;
+                    std::chrono::steady_clock::time_point last_time_ = std::chrono::steady_clock::now();
+                    std::string get_primary_interface();
+                    void update_counter();
+                    double last_download_rate_ = 0.0;
+                    double last_upload_rate_ = 0.0;
+            };
+
             class Cpu {
                 public:
                     double get_usage();
@@ -50,6 +68,7 @@ namespace system_monitor {
             Ram ram;
             Drive drive;
             General general;
+            Network network;
     };
 }
 
