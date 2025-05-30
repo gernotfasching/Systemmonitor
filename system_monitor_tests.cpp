@@ -1,8 +1,7 @@
 #include "catch_amalgamated.hpp"
 #include "system_monitor.hpp"
-#include "monitor_canvas.hpp"
-#include <limits>
 #include <string>
+#include <thread>
 
 // General Tests
 // uptime and number of processes
@@ -59,6 +58,25 @@ TEST_CASE("Monitor::CPU get_usage", "[system_monitor][Cpu]") {
     double usage2 = cpu.get_usage();
     CHECK(usage2 >= 0.0);
     CHECK(usage2 <= 1.0);
+}
+
+// Network Tests
+// download and upload rate
+TEST_CASE("Monitor::Network get_download_rate and get_upload_rate", "[system_monitor][Network]") {
+    system_monitor::Monitor::Network net;
+
+    double download1 = net.get_download_rate();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    double download2 = net.get_download_rate();
+
+    // All values should be >= 0 (rates in bytes/second) & not too high
+    CHECK(download1 >= 0.0);
+    CHECK(download2 >= 0.0);
+    CHECK(download2 < 1e12);
+    CHECK_FALSE(std::isnan(download2));
+
 }
 
 // RAM Tests

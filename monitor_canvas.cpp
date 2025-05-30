@@ -1,40 +1,60 @@
 #include "monitor_canvas.hpp"
 #include "catch_amalgamated.hpp"
 #include <unistd.h>
+#include <algorithm>
 #include <wx/font.h>
 #include <wx/gtk/bitmap.h>
+#include <wx/dcgraph.h>
 
 namespace system_monitor {
-    MonitorCanvas::MonitorCanvas(const wxString& title)
-        : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(1400, 800))
-        {
-            SetBackgroundStyle(wxBG_STYLE_PAINT);
+using std::min;
 
-            scroll_panel_ = new wxScrolledWindow(this);
-            scroll_panel_->SetScrollRate(10, 10);
-            scroll_panel_->SetBackgroundStyle(wxBG_STYLE_PAINT);
-            scroll_panel_->SetScrollbars(0, 20, 0, 100, 0, 0, true);
+MonitorCanvas::MonitorCanvas(const wxString &title)
+    : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(1400, 800)),
+      download_history_(network_history_length, 0.0),
+      upload_history_(network_history_length, 0.0) {
+  SetBackgroundStyle(wxBG_STYLE_PAINT);
 
-            scroll_panel_->Bind(wxEVT_PAINT, &MonitorCanvas::on_paint, this);
-            scroll_panel_->Bind(wxEVT_LEFT_DOWN, &MonitorCanvas::on_click, this);
+  scroll_panel_ = new wxScrolledWindow(this);
+  scroll_panel_->SetScrollRate(10, 10);
+  scroll_panel_->SetBackgroundStyle(wxBG_STYLE_PAINT);
+  scroll_panel_->SetScrollbars(0, 20, 0, 100, 0, 0, true);
 
-            timer_ = new wxTimer(this);
-            Bind(wxEVT_TIMER, &MonitorCanvas::on_timer, this);
-            timer_->Start(500);
+  scroll_panel_->Bind(wxEVT_PAINT, &MonitorCanvas::on_paint, this);
+  scroll_panel_->Bind(wxEVT_LEFT_DOWN, &MonitorCanvas::on_click, this);
 
-            cards_[0].label = "RAM";
-            cards_[1].label = "Drive";
-            cards_[2].label = "CPU";
-            cards_[0].usage = monitor_.ram.get_usage();
-            cards_[1].usage = monitor_.drive.get_usage();
-            cards_[2].usage = monitor_.cpu.get_usage();
+  timer_ = new wxTimer(this);
+  Bind(wxEVT_TIMER, &MonitorCanvas::on_timer, this);
+  timer_->Start(500);
+
+  cards_[0].label = "RAM";
+  cards_[1].label = "Drive";
+  cards_[2].label = "CPU";
+  cards_[0].usage = monitor_.ram.get_usage();
+  cards_[1].usage = monitor_.drive.get_usage();
+  cards_[2].usage = monitor_.cpu.get_usage();
         }
 
     void MonitorCanvas::on_timer(wxTimerEvent&) {
         cards_[0].usage = monitor_.ram.get_usage();
         cards_[1].usage = monitor_.drive.get_usage();
         cards_[2].usage = monitor_.cpu.get_usage();
+
+        double download = monitor_.network.get_download_rate() / 1024.0;
+        double upload = monitor_.network.get_upload_rate() / 1024.0;
+        update_network_histroy(download, upload);
+
         scroll_panel_->Refresh();
+    }
+
+    void MonitorCanvas::update_network_histroy(double download, double upload){
+        download_history_[network_graph_index_] = download;
+        upload_history_[network_graph_index_] = upload;
+        network_graph_index_++;
+        if(network_graph_index_ >= network_history_length) {
+            network_graph_index_ = 0;
+            network_graph_full_ = true;
+        }
     }
 
     void MonitorCanvas::on_paint(wxPaintEvent&) {
@@ -72,7 +92,7 @@ namespace system_monitor {
         int base_cardHeight = card.rect.height / (card.expanded ? 2 : 1);
         int center_x = card.rect.x + card.rect.width / 2;
         int center_y = card.rect.y + base_cardHeight / 2 - 10;
-        int circle_size = std::min(card.rect.width, base_cardHeight) * 0.6;
+        int circle_size = min(card.rect.width, base_cardHeight) * 0.6;
         int circle_radius = circle_size / 2;
         int show_more_y = center_y + circle_radius + 18;
 
@@ -88,7 +108,6 @@ namespace system_monitor {
 
         // Draw cards
         int x = spacing;
-        int y = spacing;
         int cards_bottom = 0;
 
         for(int i = 0; i < n_cards; ++i){
@@ -126,7 +145,7 @@ namespace system_monitor {
         // Draw the usage circle
         int center_x = card.rect.x + card.rect.width / 2;
         int center_y = card.rect.y + base_cardHeight / 2 - 10;
-        int circle_size = std::min(card.rect.width, base_cardHeight) * 0.6;
+        int circle_size = min(card.rect.width, base_cardHeight) * 0.6;
         int circle_radius = circle_size / 2;
 
         wxColour usage_col(76, 175, 80); // RAM
@@ -165,7 +184,7 @@ namespace system_monitor {
         if(is_general) {
             draw_system_infos(dc, x + spacing, y + spacing);
         } else {
-            draw_network_infos(dc, x + spacing, y + spacing);
+            draw_network_infos(dc, x + spacing, y + spacing, w);
         }
     }
 
@@ -235,7 +254,7 @@ namespace system_monitor {
         dc.DrawText(text, center_x - tw / 2, y + 9);
     }
 
-    void MonitorCanvas::draw_ram_info(wxDC& dc, const Cards& card, int info_x, int info_y) {
+    void MonitorCanvas::draw_ram_info(wxDC& dc, const Cards&, int info_x, int info_y) {
         wxFont heading_font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
         wxFont info_font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
@@ -258,7 +277,7 @@ namespace system_monitor {
         dc.DrawText(wxString::Format("Used memory: %.2f GiB", static_cast<double>(free) / (1024.0 * 1024 * 1024)), info_x, line_y);
     }
 
-    void MonitorCanvas::draw_drive_info(wxDC& dc, const Cards& card, int info_x, int info_y) {
+    void MonitorCanvas::draw_drive_info(wxDC& dc, const Cards&, int info_x, int info_y) {
         wxFont heading_font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
         wxFont info_font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
@@ -281,7 +300,7 @@ namespace system_monitor {
         dc.DrawText(wxString::Format("Used memory: %.2f GiB", static_cast<double>(free) / (1024.0 * 1024 * 1024)), info_x, line_y);
     }
 
-    void MonitorCanvas::draw_cpu_info(wxDC& dc, const Cards& card, int info_x, int info_y) {
+    void MonitorCanvas::draw_cpu_info(wxDC& dc, const Cards&, int info_x, int info_y) {
         wxFont heading_font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
         wxFont info_font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
@@ -350,7 +369,7 @@ namespace system_monitor {
         dc.DrawText(procs_text, info_x, line_y);
     }
 
-    void MonitorCanvas::draw_network_infos(wxDC& dc, int info_x, int info_y) {
+    void MonitorCanvas::draw_network_infos(wxDC& dc, int info_x, int info_y, int width) {
         wxFont heading_font(title_font_size, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
         wxFont subheading_font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
         wxFont info_font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
@@ -362,7 +381,7 @@ namespace system_monitor {
         double upload_rate = monitor_.network.get_upload_rate();
 
         wxString dowload_text = wxString::Format("Download: %.1f KiB/s", download_rate);
-        wxString upload_text = wxString::Format("Upload: %.1f KiB/s", upload_rate);
+        wxString upload_text = wxString::Format("Upload: under construction");
 
         int download_text_width, download_text_height;
         dc.GetTextExtent(dowload_text, &download_text_width, &download_text_height);
@@ -375,9 +394,48 @@ namespace system_monitor {
         dc.DrawText(dowload_text, info_x, line_y);
         dc.DrawText(upload_text, info_x + 10 * spacing, line_y);
         line_y += spacing;
+
+        // Network Graph
+        int graph_x = info_x;
+        int graph_y = line_y;
+        int graph_width = width - 2 * spacing;
+        int graph_height = 200;
+        draw_network_graph(dc, graph_x, graph_y, graph_width, graph_height);
     }
 
-    void MonitorCanvas::draw_network_graph(wxDC& dc, int x, int y){
+    void MonitorCanvas::draw_network_graph(wxDC& dc, int x, int y, int w, int h){
+        // Background square
+        dc.SetPen(wxPen(wxColour(50, 50, 60)));
+        dc.SetBrush(wxBrush(wxColour(35, 35, 45)));
+        dc.DrawRectangle(x, y, w, h);
 
+        // Lines
+        dc.SetPen(wxPen(wxColour(60, 60, 80)));
+        for(int i = 1; i < 5; ++i){
+            int yline = y + h * i / 5;
+            dc.DrawLine(x, yline, x + w, yline);
+        }
+
+        double max_val = 0.0;
+        size_t points = network_graph_full_ ? network_history_length :network_graph_index_;
+        for(size_t i = 0; i < points; ++i) {
+            max_val = std::max({max_val, download_history_[i], upload_history_[i]});
+        }
+        if(max_val < 1e-6) max_val = 1.0;
+
+        // Download Line (green)
+        dc.SetPen(wxPen(wxColour(80, 220, 60), 2));
+        for(size_t i = 1; i < points; ++i) {
+            int idx0 = (network_graph_index_ + i - 1) % network_history_length;
+            int idx1 = (network_graph_index_ + i) % network_history_length;
+            int x0 = x + (w * (i - 1)) / (network_history_length - 1);
+            int x1 = x + (w * i) / (network_history_length - 1);
+            int y0 = y + h - int(h * std::min(download_history_[idx0] /max_val, 1.0));
+            int y1 = y + h - int(h * std::min(download_history_[idx1] /max_val, 1.0));
+            dc.DrawLine(x0, y0, x1, y1);
+        }
+
+        dc.SetTextForeground(*wxWHITE);
+        dc.DrawText(wxString::Format("%.1f MiB/s", max_val), x, y);
     }
-}
+    } // namespace system_monitor

@@ -1,7 +1,9 @@
 #ifndef MONITOR_CANVAS_HPP
 #define MONITOR_CANVAS_HPP
 
+#include <cstddef>
 #include <wx/wx.h>
+#include <vector>
 #include "system_monitor.hpp"
 
 namespace system_monitor {
@@ -21,11 +23,17 @@ namespace system_monitor {
             static constexpr int spacing = 30;              // spacing between n_cards
             static constexpr int title_font_size = 14;
             static constexpr int percent_font_size = 18;
+            static constexpr int network_history_length = 60;
 
             Monitor monitor_;
             wxScrolledWindow* scroll_panel_;
             wxTimer* timer_;
             Cards cards_[n_cards];
+
+            std::vector<double> download_history_;
+            std::vector<double> upload_history_;
+            size_t network_graph_index_ = 0;
+            bool network_graph_full_ = false;
 
             bool is_expanded_ = true;
 
@@ -40,7 +48,7 @@ namespace system_monitor {
             void draw_card(wxDC& dc, Cards& card, int base_cardHeight);
             void draw_info_section(wxDC& dc, int x, int y, int w, int h, bool is_general);
             void draw_usage_circle(wxDC& dc, int center_x, int center_y, int radius, double usage, const wxColour& color, const wxString& usage_text);
-            void draw_network_graph(wxDC& dc, int x, int y);
+            void draw_network_graph(wxDC& dc, int x, int y, int w, int h);
             void draw_title(wxDC&, int x, int y, const wxString& label, int box_width);
             void draw_percentage_text(wxDC& dc, int center_x, int center_y, const wxString& usage_text);
             void draw_show_more_text(wxDC& dc, int center_x, int y, bool expanded);
@@ -49,7 +57,9 @@ namespace system_monitor {
             void draw_drive_info(wxDC& dc, const Cards& card, int info_x, int info_y);
             void draw_cpu_info(wxDC& dc, const Cards& card, int info_x, int info_y);
             void draw_system_infos(wxDC& dc, int info_x, int info_y);
-            void draw_network_infos(wxDC& dc, int info_x, int info_y);
+            void draw_network_infos(wxDC& dc, int info_x, int info_y, int width);
+
+            void update_network_histroy(double  download, double upload);
     };
 }
 
