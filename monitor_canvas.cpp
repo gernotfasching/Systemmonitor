@@ -142,7 +142,7 @@ namespace system_monitor {
         draw_show_more_text(dc, center_x, show_more_y, card.expanded);
 
         if(card.expanded) {
-            int info_y = show_more_y + 40;
+            int info_y = show_more_y + 80;
             int info_x = card.rect.x + 30;
             if(card.label == "RAM")
                 draw_ram_info(dc, card, info_x, info_y);
@@ -375,19 +375,9 @@ namespace system_monitor {
         dc.DrawText(dowload_text, info_x, line_y);
         dc.DrawText(upload_text, info_x + 10 * spacing, line_y);
         line_y += spacing;
+    }
 
-        // unsigned long uptime = monitor_.general.get_uptime();
-        // unsigned long procs_num = monitor_.general.get_procs_num();
-        //
-        // int line_y = info_y + 40;
-        //
-        // dc.SetFont(info_font);
-        //
-        // wxString uptime_text = wxString::Format("System uptime since boot (seconds): %llu", uptime);
-        // wxString procs_text = wxString::Format("Number of processes running: %llu", procs_num);
-        //
-        // dc.DrawText(uptime_text, info_x, line_y);
-        // line_y += spacing;
-        // dc.DrawText(procs_text, info_x, line_y);
+    void MonitorCanvas::draw_network_graph(wxDC& dc, int x, int y){
+
     }
 }

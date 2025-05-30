@@ -40,6 +40,7 @@ namespace system_monitor {
             void draw_card(wxDC& dc, Cards& card, int base_cardHeight);
             void draw_info_section(wxDC& dc, int x, int y, int w, int h, bool is_general);
             void draw_usage_circle(wxDC& dc, int center_x, int center_y, int radius, double usage, const wxColour& color, const wxString& usage_text);
+            void draw_network_graph(wxDC& dc, int x, int y);
             void draw_title(wxDC&, int x, int y, const wxString& label, int box_width);
             void draw_percentage_text(wxDC& dc, int center_x, int center_y, const wxString& usage_text);
             void draw_show_more_text(wxDC& dc, int center_x, int y, bool expanded);

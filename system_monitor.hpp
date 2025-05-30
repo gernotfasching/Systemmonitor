@@ -7,7 +7,7 @@ namespace system_monitor {
 
     class Monitor {
         public:
-            class General {         // for General informations about the system
+            class General {         // General informations about the system
                 public:
                     unsigned long get_uptime();
                     unsigned long get_procs_num();
@@ -22,7 +22,7 @@ namespace system_monitor {
                     std::string get_kernel_version();
             };
 
-            class Network {
+            class Network {         // Network informations
                 public:
                     std::string get_wifi_ssid();
                     double get_download_rate();
@@ -38,7 +38,7 @@ namespace system_monitor {
                     double last_upload_rate_ = 0.0;
             };
 
-            class Cpu {
+            class Cpu {         // CPU informations
                 public:
                     double get_usage();
 
@@ -48,7 +48,7 @@ namespace system_monitor {
                     bool first_call_ = true;
             };
 
-            class Ram {
+            class Ram {         // RAM informations
                 public:
                     double get_usage();
                     unsigned long long total();
@@ -56,7 +56,7 @@ namespace system_monitor {
                     unsigned long long used();
             };
 
-            class Drive {
+            class Drive {       // Drive informations
                 public:
                     double get_usage(const std::string& path = "/");
                     unsigned long long total(const std::string& path = "/");

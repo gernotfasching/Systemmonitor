@@ -62,7 +62,7 @@ namespace system_monitor {
     string Monitor::General::get_product_name() {
         std::ifstream file("/sys/devices/virtual/dmi/id/product_name");
         string name;
-        if(!file.is_open()) return "unknown";
+        if(!file.is_open()) return "Name of product is unknown.";
         std::getline(file, name);
         return name;
     }
@@ -71,7 +71,7 @@ namespace system_monitor {
     string Monitor::General::get_os_version() {
         FILE* pipe = popen("plasmashell --version 2>/dev/null", "r");
         if(!pipe)
-            return "Unknown";
+            return "Version of OS is unknown, probably not on kde plasma.";
 
         std::array<char, 120> buffer;
         string result;
@@ -82,7 +82,7 @@ namespace system_monitor {
         pclose(pipe);
 
         if(result.empty())
-            return "pipe empty";
+            return "Version is undetectable.";
 
         size_t pos = result.find(" ");
         if(pos != string::npos)
@@ -94,7 +94,7 @@ namespace system_monitor {
     string Monitor::General::get_kernel_version() {
         struct utsname buffer;
         if(uname(&buffer) != 0)
-            return "nobuffer";
+            return "Kernel version unknown";
         return string(buffer.release);
     }
 
@@ -222,26 +222,28 @@ namespace system_monitor {
     }
 
 
-    // Drive
+    // Used drive space (e.g.: 0.0 to 1.0)
     double Monitor::Drive::get_usage(const std::string& path) {
         unsigned long long t = total(path);
         unsigned long long  u = used(path);
         if(t == 0) return 0.0;
         return static_cast<double>(u) / static_cast<double>(t);
     }
-
+    // Total drive space
     unsigned long long Monitor::Drive::total(const std::string& path) {
         struct statvfs vfs;
         if(statvfs(path.c_str(), &vfs) != 0) return 0.0;
         return vfs.f_blocks * vfs.f_frsize;
     }
 
+    // Free drive space
     unsigned long long Monitor::Drive::free(const std::string& path) {
         struct statvfs vfs;
         if(statvfs(path.c_str(), &vfs) != 0) return 0.0;
         return vfs.f_bfree * vfs.f_frsize;
     }
 
+    // Used Drive space
     unsigned long long Monitor::Drive::used(const std::string& path) {
         if(total(path) < free(path)) return 0;
         return total(path) - free(path);
